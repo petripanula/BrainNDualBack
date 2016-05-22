@@ -10,9 +10,11 @@ public class Sounds {
             R.raw.fi_b,
             R.raw.fi_c,
             R.raw.fi_d,
-            R.raw.fi_e,
+            R.raw.fi_i,
             R.raw.fi_f,
-            R.raw.fi_h,
+            R.raw.fi_k,
+            R.raw.fi_x,
+            R.raw.fi_z,
     };
 
     public static final int[] FI_NBR_IDS = {
