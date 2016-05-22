@@ -1,0 +1,1 @@
+include ':app', ':baseGameUtils', ':googleplayservices_lib', ':androidsupportv7appcombat', ':BaseGameUtils'

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference android:title="Your Name"
+        android:key="playername"
+        android:summary="Please provide your name"></EditTextPreference>
+    <CheckBoxPreference android:title="Enable sounds when answer is wrong/correct"
+        android:defaultValue="false"
+        android:summary="This option if selected will play sound if answer is wrong or correct"
+        android:key="answersounds" />
+    <CheckBoxPreference android:title="Enable manual mode"
+        android:defaultValue="false"
+        android:summary="This option if selected will keep N-Back number in selected level (achievements and leader boards not used)"
+        android:key="manualmode" />
+    <ListPreference     android:title="N-Back area size"
+        android:summary="Select the area size used in game"
+        android:key="areasize"
+        android:defaultValue="2"
+        android:entries="@array/listArray"
+        android:entryValues="@array/listValues" />
+</PreferenceScreen>
