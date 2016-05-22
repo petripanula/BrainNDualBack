@@ -3,7 +3,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
-    android:background="@drawable/orange3" >
+    android:background="@drawable/brain2" >
 
     <LinearLayout
         android:id="@+id/popup_ll"
@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
-        android:background="@drawable/orange3"
+        android:background="@drawable/brain2"
         android:gravity="center"
         android:orientation="vertical" >
 

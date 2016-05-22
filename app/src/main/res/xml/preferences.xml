@@ -11,6 +11,13 @@
         android:defaultValue="false"
         android:summary="This option if selected will keep N-Back number in selected level (achievements and leader boards not used)"
         android:key="manualmode" />
+    <ListPreference     android:title="N-Back number"
+        android:summary="Select the N-back number to be used (only in manual mode)"
+        android:dependency="manualmode"
+        android:key="nback"
+        android:defaultValue="2"
+        android:entries="@array/listArray2"
+        android:entryValues="@array/listValues2" />
     <ListPreference     android:title="N-Back area size"
         android:summary="Select the area size used in game"
         android:key="areasize"

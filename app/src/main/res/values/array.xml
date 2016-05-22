@@ -12,4 +12,21 @@
         <item>3</item>
         <item>4</item>
     </string-array>
+    <string-array name="listArray2">
+        <item>N-Back 1</item>
+        <item>N-Back 2 (default)</item>
+        <item>N-Back 3</item>
+        <item>N-Back 4</item>
+        <item>N-Back 5</item>
+        <item>N-Back 6</item>
+    </string-array>
+
+    <string-array name="listValues2">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+    </string-array>
 </resources>

@@ -55,7 +55,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public static final boolean ENABLE_LOGS = true;
     public static final String TAG = "Pete";
 
-    private MediaPlayer mp;
+    private static MediaPlayer mp;
     PopupWindow popupWindow;
     String PopUpmessage="NA";
 
@@ -67,7 +67,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     int random_nbr = -1;
     int sound_id = -1;
     int nBack = 2;
-    int NumberOfPicturesToShow = 30;
+    public static final int PictureSteps = 30;
+    int NumberOfPicturesToShow = PictureSteps;
     boolean ClickedPic = false;
     boolean ClickedSound = false;
     int CorrectPicClicked = 0;
@@ -221,6 +222,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         super.onResume();
         if(ENABLE_LOGS) Log.v("Pete", "MainActivity onResume...");
         SetInitUI();
+        InitAll();
         ReadPreferences();
     }
 
@@ -313,10 +315,10 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         ClickedSound = true;
 
         if( GetFromSoundList(nBack - 1) == sound_id){
-            Toast.makeText(MainActivity.this, "CORRECT SOUND!!!!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "CORRECT LETTER!", Toast.LENGTH_SHORT).show();
             CorrectSoundClicked+=1;
         }else{
-            Toast.makeText(MainActivity.this, "WRONG SOUND!!!!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "WRONG LETTER!", Toast.LENGTH_SHORT).show();
             WrongSoundClicked+=1;
         }
     }
@@ -326,10 +328,10 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         ClickedPic = true;
 
         if( GetFromVisualList(nBack - 1) == random_nbr){
-            Toast.makeText(MainActivity.this, "CORRECT PICTURE!!!!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "CORRECT POSITION!", Toast.LENGTH_SHORT).show();
             CorrectPicClicked+=1;
         }else{
-            Toast.makeText(MainActivity.this, "WRONG PICTURE!!!!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "WRONG POSITION!", Toast.LENGTH_SHORT).show();
             WrongPicClicked+=1;
         }
     }
@@ -384,12 +386,12 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 ShowRedTimerRunning = false;
 
                 if( GetFromSoundList(nBack - 1) == sound_id && !ClickedSound){
-                    Toast.makeText(MainActivity.this, "MISSED SOUND!!!!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "MISSED LETTER!!!!", Toast.LENGTH_SHORT).show();
                     MissedSoundClick+=1;
                 }
 
                 if( GetFromVisualList(nBack - 1) == random_nbr && !ClickedPic){
-                    Toast.makeText(MainActivity.this, "MISSED PICTURE!!!!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "MISSED POSITION!!!!", Toast.LENGTH_SHORT).show();
                     MissedPicClick+=1;
                 }
 
@@ -493,6 +495,12 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         int random_range = nbr_of_pictures - 1;
         sound_id = random_sound.nextInt(random_range - 1 + 1) + 1;
 
+        if (mp != null) {
+            if (ENABLE_LOGS) Log.d("Pete", "PlaySound() - mp.release()");
+            mp.release();
+            mp = null;
+        }
+
         try {
             mp = MediaPlayer.create(this, Sounds.FI_ABC_IDS[sound_id]);
             mp.start();
@@ -516,7 +524,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         myVisualList.clear();
         mySoundList.clear();
 
-        NumberOfPicturesToShow = 30;
+        NumberOfPicturesToShow = PictureSteps;
         ClickedPic = false;
         ClickedSound = false;
         CorrectPicClicked = 0;
@@ -532,12 +540,17 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         String playername = SP.getString("playername", "NA");
         boolean answersounds = SP.getBoolean("answersounds", false);
         boolean manualmode = SP.getBoolean("manualmode",false);
-        String areasize = SP.getString("areasize","2");
+        String areasize = SP.getString("areasize", "2");
+        String nback = SP.getString("nback","2");
+
+        nBack = Integer.parseInt(nback);
 
         if(ENABLE_LOGS) Log.v("Pete", "playername: " + playername);
         if(ENABLE_LOGS) Log.v("Pete", "answersounds: " + answersounds);
         if(ENABLE_LOGS) Log.v("Pete", "manualmode: " + manualmode);
         if(ENABLE_LOGS) Log.v("Pete", "areasize: " + areasize);
+        if(ENABLE_LOGS) Log.v("Pete", "nback: " + nback);
+        if(ENABLE_LOGS) Log.v("Pete", "nback int: " + nBack);
     }
 
     public void ShowPopUp_OK(final boolean callShow){
@@ -550,7 +563,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         //int windowHeight = size.y;
 
         int FontSize = 16;
-
+        int TextBackRoundColour = 0xaa000000;
         ImageButton justfind;
 
         // POPUP WINDOW STARTS //
@@ -572,11 +585,21 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 
+        final TextView rowTextView0 = new TextView(this);
+        //rowTextView.setText(message);
+        rowTextView0.setText("\n");
+        rowTextView0.setGravity(Gravity.CENTER);
+        rowTextView0.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+        rowTextView0.setTypeface(rowTextView0.getTypeface(), Typeface.BOLD);
+        // add the textview to the linearlayout
+        ll.addView(rowTextView0,params);
+
         final TextView rowTextView = new TextView(this);
         //rowTextView.setText(message);
-        rowTextView.setText("\nCorrect positions: " + CorrectPicClicked);
+        rowTextView.setText(" Correct positions: " + CorrectPicClicked + " ");
         rowTextView.setGravity(Gravity.CENTER);
         rowTextView.setTextColor(Color.WHITE);
+        rowTextView.setBackgroundColor(TextBackRoundColour);
         rowTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         rowTextView.setTypeface(rowTextView.getTypeface(), Typeface.BOLD);
         // add the textview to the linearlayout
@@ -584,53 +607,69 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         final TextView rowTextView2 = new TextView(this);
         //rowTextView.setText(message);
-        rowTextView2.setText("Correct letters: " + CorrectSoundClicked);
+        rowTextView2.setText(" Correct letters: " + CorrectSoundClicked + " ");
         rowTextView2.setGravity(Gravity.CENTER);
         rowTextView2.setTextColor(Color.WHITE);
+        rowTextView2.setBackgroundColor(TextBackRoundColour);
         rowTextView2.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
-        rowTextView2.setTypeface(rowTextView.getTypeface(), Typeface.BOLD);
+        rowTextView2.setTypeface(rowTextView2.getTypeface(), Typeface.BOLD);
         // add the textview to the linearlayout
         ll.addView(rowTextView2,params);
 
         final TextView rowTextView3 = new TextView(this);
         //rowTextView.setText(message);
-        rowTextView3.setText("Wrong positions: " + WrongPicClicked);
+        rowTextView3.setText(" Wrong positions: " + WrongPicClicked + " ");
         rowTextView3.setGravity(Gravity.CENTER);
         rowTextView3.setTextColor(Color.WHITE);
+        rowTextView3.setBackgroundColor(TextBackRoundColour);
         rowTextView3.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
-        rowTextView3.setTypeface(rowTextView.getTypeface(), Typeface.BOLD);
+        rowTextView3.setTypeface(rowTextView3.getTypeface(), Typeface.BOLD);
         // add the textview to the linearlayout
         ll.addView(rowTextView3,params);
 
         final TextView rowTextView4 = new TextView(this);
         //rowTextView.setText(message);
-        rowTextView4.setText("Wrong letters: " + WrongSoundClicked);
+        rowTextView4.setText(" Wrong letters: " + WrongSoundClicked + " ");
         rowTextView4.setGravity(Gravity.CENTER);
         rowTextView4.setTextColor(Color.WHITE);
+        rowTextView4.setBackgroundColor(TextBackRoundColour);
         rowTextView4.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
-        rowTextView4.setTypeface(rowTextView.getTypeface(), Typeface.BOLD);
+        rowTextView4.setTypeface(rowTextView4.getTypeface(), Typeface.BOLD);
         // add the textview to the linearlayout
         ll.addView(rowTextView4,params);
 
         final TextView rowTextView5 = new TextView(this);
         //rowTextView.setText(message);
-        rowTextView5.setText("Missed positions: " + MissedPicClick);
+        rowTextView5.setText(" Missed positions: " + MissedPicClick + " ");
         rowTextView5.setGravity(Gravity.CENTER);
         rowTextView5.setTextColor(Color.WHITE);
+        rowTextView5.setBackgroundColor(TextBackRoundColour);
         rowTextView5.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
-        rowTextView5.setTypeface(rowTextView.getTypeface(), Typeface.BOLD);
+        rowTextView5.setTypeface(rowTextView5.getTypeface(), Typeface.BOLD);
         // add the textview to the linearlayout
         ll.addView(rowTextView5,params);
 
         final TextView rowTextView6 = new TextView(this);
         //rowTextView.setText(message);
-        rowTextView6.setText("Missed letters: " + MissedSoundClick + "\n\n");
+        rowTextView6.setText(" Missed letters: " + MissedSoundClick + " ");
         rowTextView6.setGravity(Gravity.CENTER);
         rowTextView6.setTextColor(Color.WHITE);
+        rowTextView6.setBackgroundColor(TextBackRoundColour);
+        //rowTextView6.setShadowLayer((float)0.5, 0, 0, Color.BLACK);
         rowTextView6.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
-        rowTextView6.setTypeface(rowTextView.getTypeface(), Typeface.BOLD);
+        rowTextView6.setTypeface(rowTextView6.getTypeface(), Typeface.BOLD);
         // add the textview to the linearlayout
         ll.addView(rowTextView6,params);
+
+        final TextView rowTextView7 = new TextView(this);
+        //rowTextView.setText(message);
+        rowTextView7.setText("\n\n");
+        rowTextView7.setGravity(Gravity.CENTER);
+        //rowTextView6.setShadowLayer((float)0.5, 0, 0, Color.BLACK);
+        rowTextView7.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+        rowTextView7.setTypeface(rowTextView7.getTypeface(), Typeface.BOLD);
+        // add the textview to the linearlayout
+        ll.addView(rowTextView7,params);
 
         Button btnDismiss = new Button(this);
         LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
