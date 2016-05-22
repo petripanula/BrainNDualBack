@@ -516,6 +516,9 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         myVisualList.clear();
         mySoundList.clear();
 
+        NumberOfPicturesToShow = 30;
+        ClickedPic = false;
+        ClickedSound = false;
         CorrectPicClicked = 0;
         CorrectSoundClicked = 0;
         WrongPicClicked = 0;
