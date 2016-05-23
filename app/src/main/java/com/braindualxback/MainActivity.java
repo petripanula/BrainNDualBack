@@ -1,6 +1,7 @@
 package com.braindualxback;
 
 import android.app.ActionBar;
+import android.app.Application;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -40,20 +41,52 @@ import android.widget.Toast;
 import static java.lang.Math.sqrt;
 //import com.google.analytics.tracking.android.EasyTracker;
 //import com.google.analytics.tracking.android.MapBuilder;
+import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.Player;
 import com.google.example.games.basegameutils.BaseGameActivity;
 import com.google.example.games.basegameutils.BaseGameUtils;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Random;
+
+import android.app.Application;
 
 public class MainActivity extends BaseGameActivity implements NumberPicker.OnValueChangeListener,RateMeMaybe.OnRMMUserChoiceListener {
 
     //TODO for release builds set to ENABLE_LOGS = false
     public static final boolean ENABLE_LOGS = true;
     public static final String TAG = "Pete";
+
+    /*****DATABASE TESTIGN********/
+    private static final String DATABASE_NAME = "game";
+    private static final String TABLE_SCORE = "score";
+    private static final String KEY_ID_SCORE = "_id";
+    private static final String KEY_SCORE = "score_value";
+    private static final String PLAYER_NAME = "player_name";
+    private static final String DATE = "date";
+    /********DATABASE TESTIGN********/
+
+
+    private Tracker mTracker;
+
+    synchronized public Tracker getDefaultTracker() {
+        if (mTracker == null) {
+            GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
+            // To enable debug logging use: adb shell setprop log.tag.GAv4 DEBUG
+            //mTracker = analytics.newTracker(R.xml.global_tracker);
+            mTracker = analytics.newTracker(R.xml.analytics);
+        }
+        return mTracker;
+    }
+    //private EasyTracker easyTracker = null;
 
     private static MediaPlayer mp;
     PopupWindow popupWindow;
@@ -82,6 +115,10 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public static int[] NewArray;
 
+    public static String[] Hiscores;
+    public static String[] Players;
+    public static String[] Dates;
+
     private  List myVisualList = new ArrayList();
     private  List mySoundList = new ArrayList();
 
@@ -101,6 +138,52 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         //getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
+
+        //easyTracker = EasyTracker.getInstance(MainActivity.this);
+        ///easyTracker.send(MapBuilder.createEvent("Application","open", "1", null).build());
+        // Obtain the shared Tracker instance.
+        //AnalyticsApplication application = (AnalyticsApplication) getApplication();
+        //application = this.ggetApplication();
+        //mTracker = application.getDefaultTracker();
+
+        mTracker = this.getDefaultTracker();
+        mTracker.setScreenName("MainActivity");
+        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        DateFormat df = new SimpleDateFormat("d MMM yyyy");
+        String date = df.format(Calendar.getInstance().getTime());
+
+        DatabaseHandler db = new DatabaseHandler(this);
+
+        //Removing all enteries....
+        //db.ClearDB();
+
+        db.addScore("Pete",date,300);
+        db.addScore("Pete",date,560);
+        db.addScore("NA",date,2);
+
+        Hiscores = new String[db.getDBsize()];
+        Players = new String[db.getDBsize()];
+        Dates = new String[db.getDBsize()];
+
+        Object[] arrayObjects = db.getAll();
+        Players = (String[])arrayObjects[0];
+        Dates = (String[])arrayObjects[1];
+        Hiscores = (String[])arrayObjects[2];
+
+        //Hiscores = db.getAll();
+        if (ENABLE_LOGS) Log.d("Pete", "Players: " + Arrays.toString(Players));
+        if (ENABLE_LOGS) Log.d("Pete", "Dates: " + Arrays.toString(Dates));
+        if (ENABLE_LOGS) Log.d("Pete", "Hiscores: " + Arrays.toString(Hiscores));
+        /*
+        Players = db.getAll("SELECT  * FROM " + TABLE_SCORE);
+        if (ENABLE_LOGS) Log.d("Pete", "Players: " + Arrays.toString(Players));
+
+        Dates = db.getAll("SELECT  * FROM " + TABLE_SCORE);
+        if (ENABLE_LOGS) Log.d("Pete", "Dates: " + Arrays.toString(Dates));
+         */
+
+
 
 
         Display display = getWindowManager().getDefaultDisplay();
@@ -342,6 +425,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public void Settings(View arg0) {
         Toast.makeText(MainActivity.this, "Settings clicked!!!!", Toast.LENGTH_SHORT).show();
+        mTracker.send(new HitBuilders.EventBuilder().setCategory("Action").setAction("Settings").build());
 
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);

@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "60837436772",
+    "project_id": "braindualxback"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:60837436772:android:b20e11cc937b58db",
+        "android_client_info": {
+          "package_name": "com.braindualxback"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "60837436772-covdporv16hl5t1ogvia24eggo9gf9ds.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.braindualxback",
+            "certificate_hash": "B31B2CD91BD93DCF615E4BF7FC6E03D06537C9A8"
+          }
+        },
+        {
+          "client_id": "60837436772-p89ikbdr9ujf4b082kenv1d9p6lkldpo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.braindualxback",
+            "certificate_hash": "EEAA325B7E83130DFFACA34E49C5F26E52F3BA37"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAvDbQ9YLQmac969ObiJb87Xzej_wdknRc"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 2,
+          "analytics_property": {
+            "tracking_id": "UA-53669329-3"
+          }
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
