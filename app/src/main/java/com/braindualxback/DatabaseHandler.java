@@ -40,7 +40,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String CREATE_SCORE_TABLE = "CREATE TABLE " + TABLE_SCORE + "("
                 + KEY_ID_SCORE + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + PLAYER_NAME + " TEXT,"
-                + DATE + " TEXT,"
+                + DATE + " int,"
                 + KEY_SCORE + " TEXT" + ")";
 
         if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "onCreate: " + CREATE_SCORE_TABLE);
@@ -65,14 +65,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     // Adding new score
-    public void addScore(String Player, String Date, int score) {
+    public void addScore(String Player, int score) {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
 
-        values.put(PLAYER_NAME, Player); // score value
-        values.put(DATE, Date); // score value
+        values.put(PLAYER_NAME, Player); // name
+        //values.put(DATE, Date); // time
+        values.put(DATE, System.currentTimeMillis());
         values.put(KEY_SCORE, score); // score value
 
         // Inserting Values
@@ -123,21 +124,23 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         int i = 0;
 
         String[] player = new String[cursor.getCount()];
-        String[] date = new String[cursor.getCount()];
+        //String[] date = new String[cursor.getCount()];
+        long[] date = new long[cursor.getCount()];
         String[] score = new String[cursor.getCount()];
 
 
         while (cursor.moveToNext()) {
 
             player[i] = cursor.getString(1);
-            date[i] = cursor.getString(2);
+            //date[i] = cursor.getString(2);
+            date[i] = cursor.getLong(2);
             score[i] = cursor.getString(3);
 
-            /*
+
             if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getString(1): " + cursor.getString(1));
-            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getString(2): " + cursor.getString(2));
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getInt(2): " + cursor.getInt(2));
             if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getString(3): " + cursor.getString(3));
-            */
+
 
             i++;
 

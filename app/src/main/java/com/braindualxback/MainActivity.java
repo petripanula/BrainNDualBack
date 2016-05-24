@@ -54,6 +54,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
@@ -117,7 +118,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public static String[] Hiscores;
     public static String[] Players;
-    public static String[] Dates;
+    //public static String[] Dates;
+    public static long[] Dates;
 
     private  List myVisualList = new ArrayList();
     private  List mySoundList = new ArrayList();
@@ -150,41 +152,42 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         mTracker.setScreenName("MainActivity");
         mTracker.send(new HitBuilders.ScreenViewBuilder().build());
 
-        DateFormat df = new SimpleDateFormat("d MMM yyyy");
-        String date = df.format(Calendar.getInstance().getTime());
-
         DatabaseHandler db = new DatabaseHandler(this);
 
         //Removing all enteries....
         //db.ClearDB();
 
-        db.addScore("Pete",date,300);
-        db.addScore("Pete",date,560);
-        db.addScore("NA",date,2);
+        db.addScore("Pete",200);
+        db.addScore("Pete",660);
+        db.addScore("NA",7);
 
         Hiscores = new String[db.getDBsize()];
         Players = new String[db.getDBsize()];
-        Dates = new String[db.getDBsize()];
+        //Dates = new String[db.getDBsize()];
+        Dates = new long[db.getDBsize()];
 
         Object[] arrayObjects = db.getAll();
         Players = (String[])arrayObjects[0];
-        Dates = (String[])arrayObjects[1];
+        //Dates = (String[])arrayObjects[1];
+        Dates = (long[])arrayObjects[1];
         Hiscores = (String[])arrayObjects[2];
 
         //Hiscores = db.getAll();
         if (ENABLE_LOGS) Log.d("Pete", "Players: " + Arrays.toString(Players));
         if (ENABLE_LOGS) Log.d("Pete", "Dates: " + Arrays.toString(Dates));
         if (ENABLE_LOGS) Log.d("Pete", "Hiscores: " + Arrays.toString(Hiscores));
-        /*
-        Players = db.getAll("SELECT  * FROM " + TABLE_SCORE);
-        if (ENABLE_LOGS) Log.d("Pete", "Players: " + Arrays.toString(Players));
-
-        Dates = db.getAll("SELECT  * FROM " + TABLE_SCORE);
-        if (ENABLE_LOGS) Log.d("Pete", "Dates: " + Arrays.toString(Dates));
-         */
 
 
+        //SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+        //Date resultdate = new Date(yourmilliseconds);
+        //System.out.println(sdf.format(resultdate));
 
+        for( int i = 0; i < Dates.length - 1; i++)
+        {
+            Date resultdate = new Date(Dates[i]);
+            if (ENABLE_LOGS) Log.d("Pete", "Converted Date: " + sdf.format(resultdate));
+        }
 
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
@@ -433,6 +436,9 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public void onShowAchievementsRequested(View arg0){
         Toast.makeText(MainActivity.this, "onShowAchievementsRequested clicked!!!!", Toast.LENGTH_SHORT).show();
+
+        Intent intent = new Intent(this, ScoresActivity.class);
+        startActivity(intent);
     }
 
     public void turnOffScreen(){
