@@ -817,7 +817,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         final TextView rowTextView8 = new TextView(this);
         //rowTextView.setText(message);
-        rowTextView8.setText(" Result %; " + ResultPercent + " ");
+        rowTextView8.setText(" Result %: " + ResultPercent + " ");
         rowTextView8.setGravity(Gravity.CENTER);
         rowTextView8.setTextColor(Color.WHITE);
         rowTextView8.setBackgroundColor(TextBackRoundColour);

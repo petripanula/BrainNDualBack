@@ -53,7 +53,7 @@ public class ImageAdapter extends BaseAdapter {
         String newString;
         int in;
 
-        if(MainActivity.ENABLE2_LOGS) Log.d(MainActivity.TAG, "public View getView. position: " + position);
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "public View getView. position: " + position);
 
         ImageView imageView;
         if (convertView == null) {
@@ -67,6 +67,8 @@ public class ImageAdapter extends BaseAdapter {
             if  (MainActivity.mImageViews[position] == null) {
                 if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "imageView.setId: " + position);
                 MainActivity.mImageViews[position] = imageView;
+
+                imageView.setImageBitmap(decodeSampledBitmapFromResource(imageView.getResources(), MainActivity.NewArray[0], picture_size, picture_size));
             }
 
             imageView.setId(position);
@@ -76,7 +78,11 @@ public class ImageAdapter extends BaseAdapter {
 
         //Log.d(BabyMain.TAG, "getResources().getResourceEntryName: " + imageView.getResources().getResourceEntryName(Pictures.MEMORY_IDS[position]));
 
-        imageView.setImageBitmap(decodeSampledBitmapFromResource(imageView.getResources(), MainActivity.NewArray[position], picture_size, picture_size));
+        //imageView.setImageBitmap(decodeSampledBitmapFromResource(imageView.getResources(), MainActivity.NewArray[position], picture_size, picture_size));
+
+       // imageView.setImageBitmap(decodeSampledBitmapFromResource(imageView.getResources(), MainActivity.NewArray[0], picture_size, picture_size));
+
+        //imageView.setImageResource(MainActivity.NewArray[0]);
 
         //imageView.setImageResource(MemoryGameActivity.NewArray[position]);
         int color = Color.parseColor("#FFFFFF");
@@ -126,21 +132,4 @@ public class ImageAdapter extends BaseAdapter {
         options.inJustDecodeBounds = false;
         return BitmapFactory.decodeResource(res, resId, options);
     }
-
-    /*
-    // references to our images
-    private Integer[] mThumbIds = {
-            R.drawable.sample_2, R.drawable.sample_3,
-            R.drawable.sample_4, R.drawable.sample_5,
-            R.drawable.sample_6, R.drawable.sample_7,
-            R.drawable.sample_0, R.drawable.sample_1,
-            R.drawable.sample_2, R.drawable.sample_3,
-            R.drawable.sample_4, R.drawable.sample_5,
-            R.drawable.sample_6, R.drawable.sample_7,
-            R.drawable.sample_0, R.drawable.sample_1,
-            R.drawable.sample_2, R.drawable.sample_3,
-            R.drawable.sample_4, R.drawable.sample_5,
-            R.drawable.sample_6, R.drawable.sample_7
-    };
-    */
 }
