@@ -3,10 +3,10 @@
     <EditTextPreference android:title="Your Name"
         android:key="playername"
         android:summary="Please provide your name"></EditTextPreference>
-    <CheckBoxPreference android:title="Enable sounds when answer is wrong/correct"
+    <CheckBoxPreference android:title="Enable popup when answer is wrong/correct"
         android:defaultValue="false"
-        android:summary="This option if selected will play sound if answer is wrong or correct"
-        android:key="answersounds" />
+        android:summary="This option if selected will show popup if answer is wrong or correct"
+        android:key="popup" />
     <CheckBoxPreference android:title="Enable manual mode"
         android:defaultValue="false"
         android:summary="This option if selected will keep N-Back number in selected level (achievements and leader boards not used)"

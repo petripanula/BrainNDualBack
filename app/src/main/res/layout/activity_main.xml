@@ -22,65 +22,32 @@
         />
 
     <LinearLayout
+        android:id="@+id/linearview"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:visibility="gone"
         android:paddingBottom="5dp"
         android:paddingLeft="9dp"
         android:paddingRight="9dp"
         android:paddingTop="5dp" >
 
         <ImageButton
-        android:id="@+id/settings"
-        android:layout_weight="1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="@drawable/button_memory_page"
-        android:layout_marginBottom="5dip"
-        android:onClick="Settings"
-        android:paddingBottom="5dip"
-        android:paddingTop="5dip"
-        android:layout_marginLeft="5dip"
-        android:layout_marginRight="5dip"
-        android:scaleType="fitCenter"
-        android:src="@drawable/settings"
-        />
-
-        <ImageButton
             android:id="@+id/matchpic"
             android:layout_weight="1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
             android:layout_gravity="bottom"
             android:background="@drawable/button_memory_page"
             android:layout_marginBottom="5dip"
             android:onClick="MatchPic"
             android:paddingBottom="5dip"
             android:paddingTop="5dip"
-            android:visibility="gone"
             android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
-            android:scaleType="fitCenter"
             android:src="@drawable/black"
-            />
-
-        <ImageButton
-            android:id="@+id/start"
-            android:layout_weight="1"
-            android:layout_toLeftOf="@+id/settings"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:background="@drawable/button_memory_page"
-            android:paddingBottom="5dip"
-            android:paddingTop="5dip"
-            android:scaleType="fitCenter"
-            android:layout_marginBottom="5dip"
-            android:layout_marginLeft="5dip"
-            android:layout_marginRight="5dip"
-            android:onClick="Start"
-            android:src="@drawable/play"
             />
 
         <ImageButton
@@ -89,12 +56,12 @@
             android:layout_toLeftOf="@+id/settings"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
             android:layout_gravity="bottom"
             android:background="@drawable/button_memory_page"
             android:paddingBottom="5dip"
             android:paddingTop="5dip"
-            android:visibility="gone"
-            android:scaleType="fitCenter"
             android:layout_marginBottom="5dip"
             android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
@@ -103,16 +70,90 @@
             />
 
         <ImageButton
-            android:id="@+id/info"
+            android:id="@+id/matchsound"
             android:layout_weight="1"
-            android:layout_toLeftOf="@+id/restart"
+            android:layout_toLeftOf="@+id/mode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
             android:layout_gravity="bottom"
             android:background="@drawable/button_memory_page"
             android:paddingBottom="5dip"
             android:paddingTop="5dip"
+            android:layout_marginBottom="5dip"
+            android:layout_marginLeft="5dip"
+            android:layout_marginRight="5dip"
+            android:onClick="MatchSound"
+            android:src="@drawable/sound"
+            />
+
+    </LinearLayout>
+
+    <HorizontalScrollView
+        android:id="@+id/horizontalview"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginBottom="5dip"
+        android:layout_marginTop="5dp" >
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="horizontal"
+        android:paddingBottom="5dp"
+        android:paddingLeft="9dp"
+        android:paddingRight="9dp"
+        android:paddingTop="5dp" >
+
+
+        <ImageButton
+            android:id="@+id/settings"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
             android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:layout_gravity="bottom"
+            android:background="@drawable/button_memory_page"
+            android:layout_marginBottom="5dip"
+            android:onClick="Settings"
+            android:paddingBottom="5dip"
+            android:paddingTop="5dip"
+            android:layout_marginLeft="5dip"
+            android:layout_marginRight="5dip"
+            android:src="@drawable/settings"
+        />
+
+        <ImageButton
+            android:id="@+id/start"
+            android:layout_toLeftOf="@+id/settings"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:layout_gravity="bottom"
+            android:background="@drawable/button_memory_page"
+            android:paddingBottom="5dip"
+            android:paddingTop="5dip"
+            android:layout_marginBottom="5dip"
+            android:layout_marginLeft="5dip"
+            android:layout_marginRight="5dip"
+            android:onClick="Start"
+            android:src="@drawable/play"
+            />
+
+        <ImageButton
+            android:id="@+id/info"
+            android:layout_toLeftOf="@+id/restart"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:layout_gravity="bottom"
+            android:background="@drawable/button_memory_page"
+            android:paddingBottom="5dip"
+            android:paddingTop="5dip"
             android:layout_marginBottom="5dip"
             android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
@@ -122,15 +163,15 @@
 
         <ImageButton
             android:id="@+id/achievements"
-            android:layout_weight="1"
             android:layout_toLeftOf="@+id/mode"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="fill_parent"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
             android:layout_gravity="bottom"
             android:background="@drawable/button_memory_page"
             android:paddingBottom="5dip"
             android:paddingTop="5dip"
-            android:scaleType="fitCenter"
             android:layout_marginBottom="5dip"
             android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
@@ -139,24 +180,42 @@
             />
 
         <ImageButton
-            android:id="@+id/matchsound"
-            android:layout_weight="1"
-            android:layout_toLeftOf="@+id/mode"
+            android:id="@+id/achievements2"
+            android:layout_toLeftOf="@+id/achievements"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="fill_parent"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
             android:layout_gravity="bottom"
             android:background="@drawable/button_memory_page"
             android:paddingBottom="5dip"
             android:paddingTop="5dip"
-            android:scaleType="fitCenter"
-            android:visibility="gone"
             android:layout_marginBottom="5dip"
             android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
-            android:onClick="MatchSound"
-            android:src="@drawable/sound"
+            android:onClick="onShowAchievementsRequested"
+            android:src="@drawable/achievements"
+            />
+
+        <ImageButton
+            android:id="@+id/achievements3"
+            android:layout_toLeftOf="@+id/achievements2"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:layout_gravity="bottom"
+            android:background="@drawable/button_memory_page"
+            android:paddingBottom="5dip"
+            android:paddingTop="5dip"
+            android:layout_marginBottom="5dip"
+            android:layout_marginLeft="5dip"
+            android:layout_marginRight="5dip"
+            android:onClick="onShowAchievementsRequested"
+            android:src="@drawable/achievements"
             />
 
     </LinearLayout>
+    </HorizontalScrollView>
 
 </LinearLayout>

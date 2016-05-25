@@ -101,6 +101,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     int random_nbr = -1;
     int sound_id = -1;
     int nBack = 2;
+    int NbrOfPictures = 9;
     public static final int PictureSteps = 30;
     int NumberOfPicturesToShow = PictureSteps;
     boolean ClickedPic = false;
@@ -112,7 +113,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     int MissedPicClick = 0;
     int MissedSoundClick = 0;
 
-    public static final ImageView[] mImageViews = new ImageView[10];
+    public static final ImageView[] mImageViews = new ImageView[37];
 
     public static int[] NewArray;
 
@@ -129,7 +130,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
 
-        int windowWidth,windowHeight,NbrOfPictures,sizeofcubeside,HeightOfGridArea=0;
+        int windowWidth,windowHeight,sizeofcubeside,HeightOfGridArea=0;
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -194,7 +195,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         display.getSize(size);
         windowWidth = size.x;
         windowHeight = size.y;
-        NbrOfPictures = 9;
 
         GridView gridview = (GridView) findViewById(R.id.gridview);
         sizeofcubeside = (int)sqrt(NbrOfPictures);
@@ -231,18 +231,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         NewArray = new int[NbrOfPictures];
 
-        int j=0,k=0;
         for(int l=0; l<NbrOfPictures; l++) {
-            NewArray[l] = Pictures.BACKGROUND_IDS[k];
-            j++;
-            if(j==2){
-                j=0;
-                k++;
-            }
+            NewArray[l] = Pictures.BACKGROUND_IDS[1];
         }
 
-        gridview.setAdapter(new ImageAdapter(this, 9, picturewidth));
+        gridview.setAdapter(new ImageAdapter(this, NbrOfPictures, picturewidth));
 
+        /*
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
@@ -255,6 +250,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             }
 
         });
+        */
     }
 
     /*
@@ -358,14 +354,19 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         ShowRedTimer(5000);
 
+        findViewById(R.id.horizontalview).setVisibility(View.GONE);
+        findViewById(R.id.linearview).setVisibility(View.VISIBLE);
+        /*
         findViewById(R.id.settings).setVisibility(View.GONE);
         findViewById(R.id.achievements).setVisibility(View.GONE);
         findViewById(R.id.start).setVisibility(View.GONE);
         findViewById(R.id.info).setVisibility(View.GONE);
+        */
+        /*
         findViewById(R.id.matchpic).setVisibility(View.VISIBLE);
         findViewById(R.id.matchsound).setVisibility(View.VISIBLE);
         findViewById(R.id.stop).setVisibility(View.VISIBLE);
-
+        */
     }
 
     public void StopAllTimers(){
@@ -379,6 +380,9 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void SetInitUI(){
+        findViewById(R.id.horizontalview).setVisibility(View.VISIBLE);
+        findViewById(R.id.linearview).setVisibility(View.GONE);
+        /*
         findViewById(R.id.settings).setVisibility(View.VISIBLE);
         findViewById(R.id.achievements).setVisibility(View.VISIBLE);
         findViewById(R.id.start).setVisibility(View.VISIBLE);
@@ -386,6 +390,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         findViewById(R.id.matchpic).setVisibility(View.GONE);
         findViewById(R.id.matchsound).setVisibility(View.GONE);
         findViewById(R.id.stop).setVisibility(View.GONE);
+        */
     }
 
     public void Stop(View arg0){
@@ -401,10 +406,10 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         ClickedSound = true;
 
         if( GetFromSoundList(nBack - 1) == sound_id){
-            Toast.makeText(MainActivity.this, "CORRECT LETTER!", Toast.LENGTH_SHORT).show();
+            ShowToast("CORRECT LETTER!");
             CorrectSoundClicked+=1;
         }else{
-            Toast.makeText(MainActivity.this, "WRONG LETTER!", Toast.LENGTH_SHORT).show();
+            ShowToast("WRONG LETTER!");
             WrongSoundClicked+=1;
         }
     }
@@ -414,10 +419,11 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         ClickedPic = true;
 
         if( GetFromVisualList(nBack - 1) == random_nbr){
-            Toast.makeText(MainActivity.this, "CORRECT POSITION!", Toast.LENGTH_SHORT).show();
+            ShowToast("CORRECT POSITION!");
             CorrectPicClicked+=1;
         }else{
-            Toast.makeText(MainActivity.this, "WRONG POSITION!", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(MainActivity.this, "WRONG POSITION!", Toast.LENGTH_SHORT).show();
+            ShowToast("WRONG POSITION!");
             WrongPicClicked+=1;
         }
     }
@@ -476,12 +482,12 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 ShowRedTimerRunning = false;
 
                 if( GetFromSoundList(nBack - 1) == sound_id && !ClickedSound){
-                    Toast.makeText(MainActivity.this, "MISSED LETTER!!!!", Toast.LENGTH_SHORT).show();
+                    ShowToast("MISSED LETTER!");
                     MissedSoundClick+=1;
                 }
 
                 if( GetFromVisualList(nBack - 1) == random_nbr && !ClickedPic){
-                    Toast.makeText(MainActivity.this, "MISSED POSITION!!!!", Toast.LENGTH_SHORT).show();
+                    ShowToast("MISSED POSITION!");
                     MissedPicClick+=1;
                 }
 
@@ -492,7 +498,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 addItemToSoundList(sound_id);
 
                 Random random = new Random();
-                random_nbr = random.nextInt(9);
+                random_nbr = random.nextInt(NbrOfPictures);
 
                 if(ENABLE_LOGS) Log.v("Pete", "random_nbr: " + random_nbr);
 
@@ -628,7 +634,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void ReadPreferences(){
         SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         String playername = SP.getString("playername", "NA");
-        boolean answersounds = SP.getBoolean("answersounds", false);
+        boolean showpopup = SP.getBoolean("popup", false);
         boolean manualmode = SP.getBoolean("manualmode",false);
         String areasize = SP.getString("areasize", "2");
         String nback = SP.getString("nback","2");
@@ -636,7 +642,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         nBack = Integer.parseInt(nback);
 
         if(ENABLE_LOGS) Log.v("Pete", "playername: " + playername);
-        if(ENABLE_LOGS) Log.v("Pete", "answersounds: " + answersounds);
+        if(ENABLE_LOGS) Log.v("Pete", "showpopup: " + showpopup);
         if(ENABLE_LOGS) Log.v("Pete", "manualmode: " + manualmode);
         if(ENABLE_LOGS) Log.v("Pete", "areasize: " + areasize);
         if(ENABLE_LOGS) Log.v("Pete", "nback: " + nback);
@@ -788,5 +794,12 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         popupWindow.showAtLocation(justfind, Gravity.CENTER, 0, 0);
         // POPUP WINDOW ENDS //
 
+    }
+
+    public void ShowToast(String mytoast){
+        Toast toast= Toast.makeText(getApplicationContext(),
+                mytoast, Toast.LENGTH_SHORT);
+        toast.setGravity(Gravity.CENTER_HORIZONTAL, 0, 0);
+        toast.show();
     }
 }

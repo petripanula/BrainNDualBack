@@ -61,7 +61,8 @@ public class ImageAdapter extends BaseAdapter {
             imageView = new ImageView(mContext);
             imageView.setLayoutParams(new GridView.LayoutParams(picture_size, picture_size));
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            imageView.setPadding(6, 6, 6, 6);
+            ///imageView.setPadding(6, 6, 6, 6);
+            imageView.setPadding(1, 1, 1, 1);
 
             if  (MainActivity.mImageViews[position] == null) {
                 if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "imageView.setId: " + position);
