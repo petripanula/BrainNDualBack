@@ -10,6 +10,7 @@ import android.graphics.Point;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
@@ -64,6 +65,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     //TODO for release builds set to ENABLE_LOGS = false
     public static final boolean ENABLE_LOGS = true;
+    public static final boolean ENABLE2_LOGS = false;
     public static final String TAG = "Pete";
 
     /*****DATABASE TESTIGN********/
@@ -92,6 +94,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     private static MediaPlayer mp;
     PopupWindow popupWindow;
     String PopUpmessage="NA";
+    String playername;
 
     CountDownTimer ShowRedTimer;
     CountDownTimer ClearRedTimer;
@@ -101,7 +104,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     int random_nbr = -1;
     int sound_id = -1;
     int nBack = 2;
-    int NbrOfPictures = 9;
+    int NbrOfPictures;
+    int NbrOfPictures_old;
     public static final int PictureSteps = 30;
     int NumberOfPicturesToShow = PictureSteps;
     boolean ClickedPic = false;
@@ -125,10 +129,14 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     private  List myVisualList = new ArrayList();
     private  List mySoundList = new ArrayList();
 
+    GridView gridview;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
+
+        if (ENABLE_LOGS) Log.d("Pete", "MainActivity onCreate...");
 
         int windowWidth,windowHeight,sizeofcubeside,HeightOfGridArea=0;
 
@@ -149,10 +157,14 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         //application = this.ggetApplication();
         //mTracker = application.getDefaultTracker();
 
+        ReadPreferences();
+        NbrOfPictures_old = NbrOfPictures;
+
         mTracker = this.getDefaultTracker();
         mTracker.setScreenName("MainActivity");
         mTracker.send(new HitBuilders.ScreenViewBuilder().build());
 
+        /*
         DatabaseHandler db = new DatabaseHandler(this);
 
         //Removing all enteries....
@@ -172,23 +184,23 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         //Dates = (String[])arrayObjects[1];
         Dates = (long[])arrayObjects[1];
         Hiscores = (String[])arrayObjects[2];
-
+        */
         //Hiscores = db.getAll();
-        if (ENABLE_LOGS) Log.d("Pete", "Players: " + Arrays.toString(Players));
-        if (ENABLE_LOGS) Log.d("Pete", "Dates: " + Arrays.toString(Dates));
-        if (ENABLE_LOGS) Log.d("Pete", "Hiscores: " + Arrays.toString(Hiscores));
 
+        //if (ENABLE_LOGS) Log.d("Pete", "Players: " + Arrays.toString(Players));
+        //if (ENABLE_LOGS) Log.d("Pete", "Dates: " + Arrays.toString(Dates));
+        //if (ENABLE_LOGS) Log.d("Pete", "Hiscores: " + Arrays.toString(Hiscores));
 
+        /*
         //SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-        //Date resultdate = new Date(yourmilliseconds);
-        //System.out.println(sdf.format(resultdate));
 
         for( int i = 0; i < Dates.length - 1; i++)
         {
             Date resultdate = new Date(Dates[i]);
             if (ENABLE_LOGS) Log.d("Pete", "Converted Date: " + sdf.format(resultdate));
         }
+        */
 
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
@@ -196,7 +208,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         windowWidth = size.x;
         windowHeight = size.y;
 
-        GridView gridview = (GridView) findViewById(R.id.gridview);
+        gridview = (GridView) findViewById(R.id.gridview);
         sizeofcubeside = (int)sqrt(NbrOfPictures);
         HeightOfGridArea = windowHeight*6/7;
 
@@ -212,19 +224,19 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         int NbrOfVerticalPictures = NbrOfPictures/sizeofcubeside;
         int TotalPadding = 16*NbrOfVerticalPictures;
-        if (ENABLE_LOGS) Log.d("Pete", "NbrOfVerticalPictures: " + NbrOfVerticalPictures);
-        if (ENABLE_LOGS) Log.d("Pete", "TotalPadding: " + TotalPadding);
+        if (ENABLE2_LOGS) Log.d("Pete", "NbrOfVerticalPictures: " + NbrOfVerticalPictures);
+        if (ENABLE2_LOGS) Log.d("Pete", "TotalPadding: " + TotalPadding);
 
         int picturewidth;
         picturewidth = (windowWidth / sizeofcubeside);
 
-        if (ENABLE_LOGS) Log.d("Pete", "picturewidth: " + picturewidth);
+        if (ENABLE2_LOGS) Log.d("Pete", "picturewidth: " + picturewidth);
 
         if((NbrOfVerticalPictures*picturewidth+TotalPadding)>HeightOfGridArea) {
-            if (ENABLE_LOGS) Log.d("Pete", "Pictures does't fit to Y: " + windowHeight);
+            if (ENABLE2_LOGS) Log.d("Pete", "Pictures does't fit to Y: " + windowHeight);
 
             picturewidth = HeightOfGridArea/NbrOfVerticalPictures - TotalPadding;
-            if (ENABLE_LOGS) Log.d("Pete", "new picturewidth: " + picturewidth);
+            if (ENABLE2_LOGS) Log.d("Pete", "new picturewidth: " + picturewidth);
         }else{
             picturewidth = picturewidth - 50;
         }
@@ -306,6 +318,25 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         SetInitUI();
         InitAll();
         ReadPreferences();
+
+        if(NbrOfPictures != NbrOfPictures_old) {
+
+            for(int l=0; l<mImageViews.length; l++) {
+                mImageViews[l] = null;
+            }
+
+            if (Build.VERSION.SDK_INT >= 11) {
+                recreate();
+            } else {
+                Intent intent = getIntent();
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                finish();
+                overridePendingTransition(0, 0);
+
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+            }
+        }
     }
 
     @Override
@@ -376,6 +407,12 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         if(ClearRedTimer!=null)
             ClearRedTimer.cancel();
+
+        if (mp != null) {
+            if (ENABLE_LOGS) Log.d("Pete", "StopAllTimers() - mp.release()");
+            mp.release();
+            mp = null;
+        }
 
     }
 
@@ -463,6 +500,12 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         if(NumberOfPicturesToShow<=0){
             if(ENABLE_LOGS) Log.v("Pete", "In ShowRedTimer - we should stop...");
             PopUpmessage="CorrectPicClicked: " + CorrectPicClicked + " CorrectSoundClicked: " + CorrectSoundClicked + " WrongPicClicked: " + WrongPicClicked + " WrongSoundClicked: " + WrongSoundClicked + " MissedPicClick: " + MissedPicClick + " MissedSoundClick: " + MissedSoundClick;
+
+            int ResultPercent = (int)((double)(CorrectPicClicked + CorrectSoundClicked) / (double)(CorrectPicClicked + CorrectSoundClicked + WrongPicClicked + WrongSoundClicked + MissedPicClick + MissedSoundClick) * 100);
+
+            DatabaseHandler db = new DatabaseHandler(this);
+            db.addScore(playername,ResultPercent,nBack,NbrOfPictures);
+
             ShowPopUp_OK(true);
             SetInitUI();
             InitAll();
@@ -633,7 +676,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public void ReadPreferences(){
         SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        String playername = SP.getString("playername", "NA");
+        playername = SP.getString("playername", "NA");
         boolean showpopup = SP.getBoolean("popup", false);
         boolean manualmode = SP.getBoolean("manualmode",false);
         String areasize = SP.getString("areasize", "2");
@@ -647,6 +690,9 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         if(ENABLE_LOGS) Log.v("Pete", "areasize: " + areasize);
         if(ENABLE_LOGS) Log.v("Pete", "nback: " + nback);
         if(ENABLE_LOGS) Log.v("Pete", "nback int: " + nBack);
+
+        int picturesFromConfig = Integer.parseInt(areasize) * Integer.parseInt(areasize);
+        NbrOfPictures = picturesFromConfig;
     }
 
     public void ShowPopUp_OK(final boolean callShow){
@@ -759,13 +805,37 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         final TextView rowTextView7 = new TextView(this);
         //rowTextView.setText(message);
-        rowTextView7.setText("\n\n");
+        rowTextView7.setText("\n");
         rowTextView7.setGravity(Gravity.CENTER);
         //rowTextView6.setShadowLayer((float)0.5, 0, 0, Color.BLACK);
         rowTextView7.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         rowTextView7.setTypeface(rowTextView7.getTypeface(), Typeface.BOLD);
         // add the textview to the linearlayout
         ll.addView(rowTextView7,params);
+
+        int ResultPercent = (int)((double)(CorrectPicClicked + CorrectSoundClicked) / (double)(CorrectPicClicked + CorrectSoundClicked + WrongPicClicked + WrongSoundClicked + MissedPicClick + MissedSoundClick) * 100);
+
+        final TextView rowTextView8 = new TextView(this);
+        //rowTextView.setText(message);
+        rowTextView8.setText(" Result %; " + ResultPercent + " ");
+        rowTextView8.setGravity(Gravity.CENTER);
+        rowTextView8.setTextColor(Color.WHITE);
+        rowTextView8.setBackgroundColor(TextBackRoundColour);
+        //rowTextView6.setShadowLayer((float)0.5, 0, 0, Color.BLACK);
+        rowTextView8.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+        rowTextView8.setTypeface(rowTextView7.getTypeface(), Typeface.BOLD);
+        // add the textview to the linearlayout
+        ll.addView(rowTextView8,params);
+
+        final TextView lastRowTextView = new TextView(this);
+        //rowTextView.setText(message);
+        lastRowTextView.setText("\n\n");
+        lastRowTextView.setGravity(Gravity.CENTER);
+        //rowTextView6.setShadowLayer((float)0.5, 0, 0, Color.BLACK);
+        lastRowTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+        lastRowTextView.setTypeface(lastRowTextView.getTypeface(), Typeface.BOLD);
+        // add the textview to the linearlayout
+        ll.addView(lastRowTextView,params);
 
         Button btnDismiss = new Button(this);
         LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);

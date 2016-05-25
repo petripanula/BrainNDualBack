@@ -18,9 +18,18 @@ import android.widget.TextView;
 
 import com.google.android.gms.games.Games;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class ScoresActivity extends AppCompatActivity {
 
     String Player = "Pete";
+    public static String[] Hiscores;
+    public static String[] Players;
+    public static long[] Dates;
+    public static int[] nBacks;
+    public static int[] areas;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -36,15 +45,39 @@ public class ScoresActivity extends AppCompatActivity {
         setContentView(R.layout.activity_scores);
 
         String HTMLsourceString;
-        int FontSize = 16;
+        int FontSize = 12;
+        int tablesize = 10;
+
+        DatabaseHandler db = new DatabaseHandler(this);
+        Object[] arrayObjects = db.getAll();
+
+        Hiscores = new String[db.getDBsize()];
+        Players = new String[db.getDBsize()];
+        Dates = new long[db.getDBsize()];
+        nBacks = new int[db.getDBsize()];
+        areas = new int[db.getDBsize()];
+
+        Players = (String[])arrayObjects[0];
+        Dates = (long[])arrayObjects[1];
+        nBacks = (int[])arrayObjects[2];
+        areas = (int[])arrayObjects[3];
+        Hiscores = (String[])arrayObjects[4];
 
         LinearLayout ll = (LinearLayout) findViewById(R.id.my_hiscore);
 
-        for(int j = 0; j < 10; j++){
+        if (db.getDBsize()<tablesize){
+            tablesize = db.getDBsize();
+        }
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+
+        for(int j = 0; j < tablesize; j++){
             // create a new textview
             final TextView rowTextView = new TextView(this);
 
-            HTMLsourceString = "<font color=#00FF00> HI SCORE <b>" +j + " " + j+2 + "</b> LEVEL HI SCORE (<b>" + 100 + "</b>) Done by <b>" + Player + "</b></font>";
+            Date resultdate = new Date(Dates[j]);
+
+            HTMLsourceString = "<font color=#00FF00> PLAYER <b>" + Players[j] + "</b> AREA (<b>" + areas[j] + "</b>) N-BACK (<b>" + nBacks[j] + "</b>) SCORE (<b>" + Hiscores[j] + "</b>) DATE: <b>" + sdf.format(resultdate) + "</b></font>";
 
             rowTextView.setText(Html.fromHtml(HTMLsourceString));
             rowTextView.setGravity(Gravity.CENTER);

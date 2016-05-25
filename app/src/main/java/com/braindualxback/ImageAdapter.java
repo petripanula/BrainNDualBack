@@ -53,7 +53,7 @@ public class ImageAdapter extends BaseAdapter {
         String newString;
         int in;
 
-        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "public View getView. position: " + position);
+        if(MainActivity.ENABLE2_LOGS) Log.d(MainActivity.TAG, "public View getView. position: " + position);
 
         ImageView imageView;
         if (convertView == null) {

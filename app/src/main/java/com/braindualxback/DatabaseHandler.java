@@ -29,6 +29,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_SCORE = "score_value";
     private static final String PLAYER_NAME = "player_name";
     private static final String DATE = "date";
+    private static final String NBACK = "nback";
+    private static final String AREA = "area";
 
     public DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -41,6 +43,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + KEY_ID_SCORE + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + PLAYER_NAME + " TEXT,"
                 + DATE + " int,"
+                + NBACK + " int,"
+                + AREA + " int,"
                 + KEY_SCORE + " TEXT" + ")";
 
         if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "onCreate: " + CREATE_SCORE_TABLE);
@@ -65,17 +69,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     // Adding new score
-    public void addScore(String Player, int score) {
+    public void addScore(String Player, int score, int nback, int area) {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
 
         values.put(PLAYER_NAME, Player); // name
-        //values.put(DATE, Date); // time
         values.put(DATE, System.currentTimeMillis());
         values.put(KEY_SCORE, score); // score value
-
+        values.put(NBACK, nback);
+        values.put(AREA, area);
         // Inserting Values
         db.insert(TABLE_SCORE, null, values);
 
@@ -103,7 +107,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "getAllScores()...");
 
-        Object[] arrayObjects = new Object[3];
+        Object[] arrayObjects = new Object[6];
         // Select All Query
         //String selectQuery = "SELECT  * FROM " + TABLE_SCORE;
         String selectQuery = "SELECT * FROM " + TABLE_SCORE + " ORDER BY CAST("+ KEY_SCORE+" AS INTEGER) DESC";
@@ -128,18 +132,24 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         long[] date = new long[cursor.getCount()];
         String[] score = new String[cursor.getCount()];
 
+        int[] area = new int[cursor.getCount()];
+        int[] nback = new int[cursor.getCount()];
 
         while (cursor.moveToNext()) {
 
             player[i] = cursor.getString(1);
-            //date[i] = cursor.getString(2);
             date[i] = cursor.getLong(2);
-            score[i] = cursor.getString(3);
+            nback[i] = cursor.getInt(3);
+            area[i] = cursor.getInt(4);
+
+            score[i] = cursor.getString(5);
 
 
-            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getString(1): " + cursor.getString(1));
-            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getInt(2): " + cursor.getInt(2));
-            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getString(3): " + cursor.getString(3));
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getString(1) player: " + cursor.getString(1));
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getLong(2) date: " + cursor.getLong(2));
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getInt(3) nback: " + cursor.getInt(3));
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getInt(4) area: " + cursor.getInt(4));
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getString(3) score: " + cursor.getString(5));
 
 
             i++;
@@ -154,7 +164,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         */
         arrayObjects [0] = player;
         arrayObjects [1] = date;
-        arrayObjects [2] = score;
+        arrayObjects [2] = nback;
+        arrayObjects [3] = area;
+        arrayObjects [4] = score;
 
         return arrayObjects;
     }
