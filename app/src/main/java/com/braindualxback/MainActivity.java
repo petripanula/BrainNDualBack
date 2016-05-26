@@ -5,6 +5,7 @@ import android.app.Application;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
@@ -45,8 +46,10 @@ import static java.lang.Math.sqrt;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.Player;
+import com.google.android.gms.games.achievement.Achievements;
 import com.google.example.games.basegameutils.BaseGameActivity;
 import com.google.example.games.basegameutils.BaseGameUtils;
 
@@ -68,6 +71,22 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public static final boolean ENABLE2_LOGS = false;
     public static final String TAG = "Pete";
 
+    public static final int GameLevels = 4;
+    public static final int nBacks = 6;
+
+    String[][] nBackAchievementID = new String[GameLevels][nBacks];
+    public static boolean[][] mnBackAchievement = new boolean[GameLevels][nBacks];
+    public static boolean nBackAchievementSent = false;
+    public static int nBackAchievementAck_i = -1;
+    public static int nBackAchievementAck_j = -1;
+    public static boolean[][] nBackAchievementOnServer = new boolean[GameLevels][nBacks];
+    boolean ShowGlobalAchievemwntClicked = false;
+
+    // request codes we use when invoking an external activity
+    final int RC_RESOLVE = 5000, RC_UNUSED = 5001;
+
+    TextView TextHeader;
+
     /*****DATABASE TESTIGN********/
     private static final String DATABASE_NAME = "game";
     private static final String TABLE_SCORE = "score";
@@ -76,7 +95,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     private static final String PLAYER_NAME = "player_name";
     private static final String DATE = "date";
     /********DATABASE TESTIGN********/
-
 
     private Tracker mTracker;
 
@@ -96,6 +114,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     String PopUpmessage="NA";
     String playername;
 
+    boolean manualmode;
     CountDownTimer ShowRedTimer;
     CountDownTimer ClearRedTimer;
     ImageView imageView;
@@ -137,6 +156,11 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         super.onCreate(savedInstanceState);
 
         if (ENABLE_LOGS) Log.d("Pete", "MainActivity onCreate...");
+
+        //Init all mImageViews....
+        for(int l=0; l<mImageViews.length; l++) {
+            mImageViews[l] = null;
+        }
 
         int windowWidth,windowHeight,sizeofcubeside,HeightOfGridArea=0;
 
@@ -315,11 +339,12 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void onResume() {
         super.onResume();
         if(ENABLE_LOGS) Log.v("Pete", "MainActivity onResume...");
+        ReadPreferences();
         SetInitUI();
         InitAll();
-        ReadPreferences();
 
         if(NbrOfPictures != NbrOfPictures_old) {
+            if(ENABLE_LOGS) Log.v("Pete", "MainActivity onResume - recreate...");
 
             for(int l=0; l<mImageViews.length; l++) {
                 mImageViews[l] = null;
@@ -372,6 +397,27 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void onSignInSucceeded() {
         if(ENABLE_LOGS) Log.v("Pete", "In onSignInSucceeded...");
 
+        Player p = Games.Players.getCurrentPlayer(getApiClient());
+        String displayName;
+        if (p == null) {
+            if(ENABLE_LOGS) Log.v("Pete", "getCurrentPlayer() is NULL!");
+            displayName = "???";
+        } else {
+            displayName = p.getDisplayName();
+            if (ENABLE_LOGS) Log.v("Pete", "getCurrentPlayer() is " + displayName);
+
+            SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+            playername = SP.getString("playername", "NA");
+
+            if (playername.equals("NA")) {
+                playername = displayName;
+                SharedPreferences.Editor editor = SP.edit();
+                editor.putString("playername", displayName);
+                editor.commit();
+
+                SetInitUI();
+            }
+        }
     }
 
     @Override
@@ -419,15 +465,37 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void SetInitUI(){
         findViewById(R.id.horizontalview).setVisibility(View.VISIBLE);
         findViewById(R.id.linearview).setVisibility(View.GONE);
-        /*
-        findViewById(R.id.settings).setVisibility(View.VISIBLE);
-        findViewById(R.id.achievements).setVisibility(View.VISIBLE);
-        findViewById(R.id.start).setVisibility(View.VISIBLE);
-        findViewById(R.id.info).setVisibility(View.VISIBLE);
-        findViewById(R.id.matchpic).setVisibility(View.GONE);
-        findViewById(R.id.matchsound).setVisibility(View.GONE);
-        findViewById(R.id.stop).setVisibility(View.GONE);
-        */
+
+        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                Configuration.SCREENLAYOUT_SIZE_NORMAL){
+
+        }
+
+        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                Configuration.SCREENLAYOUT_SIZE_LARGE){
+
+        }
+
+        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                Configuration.SCREENLAYOUT_SIZE_XLARGE){
+
+        }
+
+        int PicNumberHeight = 12;
+        int PicNumberWaidth = 12;
+        int FontSize = 12;
+
+        TextHeader = (TextView)findViewById(R.id.headertext);
+        //TextHeader = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, PicNumberHeight, getResources().getDisplayMetrics());
+        //TextHeader.getLayoutParams().height=PicNumberHeight;
+        //TextHeader = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, PicNumberWaidth, getResources().getDisplayMetrics());
+        //TextHeader.getLayoutParams().width=PicNumberWaidth;
+        TextHeader.setTextSize(TypedValue.COMPLEX_UNIT_DIP, FontSize);
+        TextHeader.setTypeface(TextHeader.getTypeface(), Typeface.BOLD);
+        //TextHeader.setBackgroundResource(R.drawable.textview_magneta);
+        TextHeader.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+        TextHeader.setTextColor(Color.WHITE);
+        TextHeader.setText("Player: " + playername + "\n" + "Area: " + NbrOfPictures + " nBack: " + String.valueOf(nBack) + (manualmode ? " ManualMode" : " PlayMode"));
     }
 
     public void Stop(View arg0){
@@ -436,6 +504,30 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         SetInitUI();
         StopAllTimers();
         InitAll();
+    }
+
+    public void Restart(View arg0){
+        Toast.makeText(MainActivity.this, "Restart!!!!", Toast.LENGTH_SHORT).show();
+
+        for(int l=0; l<mImageViews.length; l++) {
+            mImageViews[l] = null;
+        }
+
+        SetInitUI();
+        StopAllTimers();
+        InitAll();
+
+        if (Build.VERSION.SDK_INT >= 11) {
+            recreate();
+        } else {
+            Intent intent = getIntent();
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            finish();
+            overridePendingTransition(0, 0);
+
+            startActivity(intent);
+            overridePendingTransition(0, 0);
+        }
     }
 
     public void MatchSound(View arg0) {
@@ -477,11 +569,27 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         startActivity(intent);
     }
 
-    public void onShowAchievementsRequested(View arg0){
-        Toast.makeText(MainActivity.this, "onShowAchievementsRequested clicked!!!!", Toast.LENGTH_SHORT).show();
+    public void onShowLocalHiScores(View arg0){
+        Toast.makeText(MainActivity.this, "onShowLocalHiScores clicked!!!!", Toast.LENGTH_SHORT).show();
 
         Intent intent = new Intent(this, ScoresActivity.class);
         startActivity(intent);
+    }
+
+    public void onShowAchievementsRequested(View arg0){
+        Toast.makeText(MainActivity.this, "onShowAchievementsRequested clicked!!!!", Toast.LENGTH_SHORT).show();
+
+        if (isSignedIn()) {
+            startActivityForResult(Games.Achievements.getAchievementsIntent(getApiClient()),RC_UNUSED);
+        } else {
+            showAlert(getString(R.string.achievements_not_available));
+        }
+
+    }
+
+    public void onShowGlobalHiScores(View arg0){
+        Toast.makeText(MainActivity.this, "onShowGlobalHiScores clicked!!!!", Toast.LENGTH_SHORT).show();
+
     }
 
     public void turnOffScreen(){
@@ -678,7 +786,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         playername = SP.getString("playername", "NA");
         boolean showpopup = SP.getBoolean("popup", false);
-        boolean manualmode = SP.getBoolean("manualmode",false);
+        manualmode = SP.getBoolean("manualmode",false);
         String areasize = SP.getString("areasize", "2");
         String nback = SP.getString("nback","2");
 
@@ -863,7 +971,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         justfind = (ImageButton)findViewById(R.id.settings);
         popupWindow.showAtLocation(justfind, Gravity.CENTER, 0, 0);
         // POPUP WINDOW ENDS //
-
     }
 
     public void ShowToast(String mytoast){
@@ -871,5 +978,61 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 mytoast, Toast.LENGTH_SHORT);
         toast.setGravity(Gravity.CENTER_HORIZONTAL, 0, 0);
         toast.show();
+    }
+
+    // Input area and nBack....
+    public void SetAchievement(int Level, int nBack) {
+        if(ENABLE_LOGS) Log.v("Pete", "SetAchievement: " +  " Level: " + Level + " nBack: " + nBack);
+
+        mnBackAchievement[Level-2][nBack-1] = true;
+        //TODO
+        //submitPicMemoryEvent(Level, Time);
+    }
+
+    void pushAccomplishments() {
+        //Here we should push LeaderScores, Achievements and Events
+        if (!isSignedIn()) {
+            // can't push to the cloud, so save locally
+            if(ENABLE_LOGS) Log.v("Pete", "pushAccomplishments - not isSignedIn");
+            return;
+        }
+
+        //For Achievements...
+        for(int i=0;i<GameLevels;i++) {
+            for (int j = 0; j < nBacks; j++) {
+
+                if (mnBackAchievement[i][j] && !nBackAchievementSent) {
+                    if(ENABLE_LOGS) Log.v("Pete", "pushAccomplishments - not unlockImmediate - i: " + i + " j: " + j);
+                    Games.Achievements.unlockImmediate(mHelper.getApiClient(),  nBackAchievementID[i][j]).setResultCallback(new myPicMemoryAchievementResultCallback());
+                    nBackAchievementSent = true;
+
+                    nBackAchievementAck_i = i;
+                    nBackAchievementAck_j = j;
+                }
+            }
+        }
+    }
+
+    class myPicMemoryAchievementResultCallback implements ResultCallback<Achievements.UpdateAchievementResult> {
+
+        @Override
+        public void onResult(Achievements.UpdateAchievementResult res) {
+            if (res.getStatus().getStatusCode() == 0) {
+                if(ENABLE_LOGS) Log.v("Pete", "PicMemoryAchievement delivered to server!!!!");
+
+                mnBackAchievement[nBackAchievementAck_i][nBackAchievementAck_j] = false;
+
+                //This is used for prevent future push for this.....
+                nBackAchievementOnServer[nBackAchievementAck_i][nBackAchievementAck_j] = true;
+
+                nBackAchievementSent = false;
+                nBackAchievementAck_i = -1;
+                nBackAchievementAck_j = -1;
+            }
+        }
+    }
+
+    public void SetStringsArrays(){
+        nBackAchievementID[0][0] = getString(R.string.achievement_nback_1_area_2x2_result_50);
     }
 }

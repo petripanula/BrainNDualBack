@@ -1,6 +1,7 @@
 package com.braindualxback;
 
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
@@ -42,11 +43,15 @@ public class ScoresActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
+        getSupportActionBar().hide();
+
         setContentView(R.layout.activity_scores);
 
         String HTMLsourceString;
+        int FontSizeHeader = 14;
         int FontSize = 12;
         int tablesize = 10;
+        int TextBackRoundColour = 0xaa000000;
 
         DatabaseHandler db = new DatabaseHandler(this);
         Object[] arrayObjects = db.getAll();
@@ -63,7 +68,44 @@ public class ScoresActivity extends AppCompatActivity {
         areas = (int[])arrayObjects[3];
         Hiscores = (String[])arrayObjects[4];
 
+        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                Configuration.SCREENLAYOUT_SIZE_NORMAL){
+            if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ScoresActivity SCREENLAYOUT_SIZE_NORMAL...");
+            FontSizeHeader = 14;
+            FontSize = 13;
+        }
+
+        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                Configuration.SCREENLAYOUT_SIZE_LARGE){
+            if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ScoresActivity SCREENLAYOUT_SIZE_LARGE...");
+            FontSizeHeader = 14;
+            FontSize = 13;
+        }
+
+        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                Configuration.SCREENLAYOUT_SIZE_XLARGE){
+            if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ScoresActivity SCREENLAYOUT_SIZE_XLARGE...");
+        }
+
         LinearLayout ll = (LinearLayout) findViewById(R.id.my_hiscore);
+
+        final TextView HeaderTextView = new TextView(this);
+        HTMLsourceString = "<font color=#00FF00> PLAYER - AREA SIZE - nBACK - SCORE - DATE <b></b></font>";
+        HeaderTextView.setText(Html.fromHtml(HTMLsourceString));
+        HeaderTextView.setGravity(Gravity.CENTER);
+        HeaderTextView.setTextColor(Color.WHITE);
+        HeaderTextView.setBackgroundColor(TextBackRoundColour);
+        HeaderTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeHeader);
+        // add the textview to the linearlayout
+        ll.addView(HeaderTextView);
+
+        final TextView SpacesTextView = new TextView(this);
+        SpacesTextView.setText("\n");
+        SpacesTextView.setBackgroundColor(TextBackRoundColour);
+        SpacesTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeHeader);
+        // add the textview to the linearlayout
+        ll.addView(SpacesTextView);
+
 
         if (db.getDBsize()<tablesize){
             tablesize = db.getDBsize();
@@ -77,11 +119,12 @@ public class ScoresActivity extends AppCompatActivity {
 
             Date resultdate = new Date(Dates[j]);
 
-            HTMLsourceString = "<font color=#00FF00> PLAYER <b>" + Players[j] + "</b> AREA (<b>" + areas[j] + "</b>) N-BACK (<b>" + nBacks[j] + "</b>) SCORE (<b>" + Hiscores[j] + "</b>) DATE: <b>" + sdf.format(resultdate) + "</b></font>";
+            HTMLsourceString = "<font color=#00FF00> <b>" + Players[j] + "</b> - " + areas[j] + " - " + nBacks[j] + " - <b>" + Hiscores[j] + "</b> - " + sdf.format(resultdate) + "</font>";
 
             rowTextView.setText(Html.fromHtml(HTMLsourceString));
             rowTextView.setGravity(Gravity.CENTER);
             rowTextView.setTextColor(Color.WHITE);
+            rowTextView.setBackgroundColor(TextBackRoundColour);
             rowTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
             // add the textview to the linearlayout
             ll.addView(rowTextView);

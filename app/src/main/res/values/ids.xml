@@ -1,0 +1,14 @@
+<!--
+Google Play game services IDs.
+Save this file as res/values/games-ids.xml in your project.
+-->
+<resources>
+    <string name="app_id">60837436772</string>
+    <string name="package_name">com.braindualxback</string>
+    <string name="achievement_nback_1_area_2x2_result_50">CgkI5LrG0eIBEAIQAQ</string>
+    <string name="achievement_nback_1_area_2x2_result_75">CgkI5LrG0eIBEAIQAg</string>
+    <string name="achievement_nback_1_area_2x2_result_100">CgkI5LrG0eIBEAIQAw</string>
+    <string name="achievement_nback_2_area_2x2_result_50">CgkI5LrG0eIBEAIQBA</string>
+    <string name="achievement_nback_2_area_2x2_result_75">CgkI5LrG0eIBEAIQBQ</string>
+    <string name="achievement_nback_2_area_2x2_result_100">CgkI5LrG0eIBEAIQBg</string>
+</resources>

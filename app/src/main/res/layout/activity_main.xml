@@ -6,6 +6,19 @@
     android:background="@drawable/brain"
     android:orientation="vertical" >
 
+    <TextView
+        android:id="@+id/headertext"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.5"
+        android:text="@string/hello_world"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:textColor="#ffffff"
+        android:textColorHighlight="#000000"
+        android:textIsSelectable="true"
+        />
+
     <GridView xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/gridview"
         android:layout_width="fill_parent"
@@ -14,8 +27,8 @@
         android:clipChildren="true"
         android:columnWidth="90dp"
         android:numColumns="2"
-        android:verticalSpacing="10dp"
-        android:horizontalSpacing="10dp"
+        android:verticalSpacing="5dp"
+        android:horizontalSpacing="5dp"
         android:scrollbars="none"
         android:stretchMode="columnWidth"
         android:gravity="center"
@@ -175,7 +188,7 @@
             android:layout_marginBottom="5dip"
             android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
-            android:onClick="onShowAchievementsRequested"
+            android:onClick="onShowLocalHiScores"
             android:src="@drawable/achievements"
             />
 
@@ -194,11 +207,11 @@
             android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
             android:onClick="onShowAchievementsRequested"
-            android:src="@drawable/achievements"
+            android:src="@drawable/achievements3"
             />
 
         <ImageButton
-            android:id="@+id/achievements3"
+            android:id="@+id/GlobalHiscores"
             android:layout_toLeftOf="@+id/achievements2"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
@@ -211,8 +224,26 @@
             android:layout_marginBottom="5dip"
             android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
-            android:onClick="onShowAchievementsRequested"
-            android:src="@drawable/achievements"
+            android:onClick="onShowGlobalHiScores"
+            android:src="@drawable/achievements2"
+            />
+
+        <ImageButton
+            android:id="@+id/restart"
+            android:layout_toLeftOf="@+id/GlobalHiscores"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:layout_gravity="bottom"
+            android:background="@drawable/button_memory_page"
+            android:paddingBottom="5dip"
+            android:paddingTop="5dip"
+            android:layout_marginBottom="5dip"
+            android:layout_marginLeft="5dip"
+            android:layout_marginRight="5dip"
+            android:onClick="Restart"
+            android:src="@drawable/restart"
             />
 
     </LinearLayout>
