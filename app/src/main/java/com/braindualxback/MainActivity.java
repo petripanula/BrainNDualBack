@@ -1,7 +1,6 @@
 package com.braindualxback;
 
 import android.app.ActionBar;
-import android.app.Application;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -9,25 +8,20 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageButton;
@@ -35,34 +29,19 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.PopupWindow;
-import android.widget.Spinner;
-import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import static java.lang.Math.sqrt;
-//import com.google.analytics.tracking.android.EasyTracker;
-//import com.google.analytics.tracking.android.MapBuilder;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.Player;
-import com.google.android.gms.games.achievement.Achievements;
 import com.google.example.games.basegameutils.BaseGameActivity;
-import com.google.example.games.basegameutils.BaseGameUtils;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Random;
-
-import android.app.Application;
 
 public class MainActivity extends BaseGameActivity implements NumberPicker.OnValueChangeListener,RateMeMaybe.OnRMMUserChoiceListener {
 
@@ -71,30 +50,32 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public static final boolean ENABLE2_LOGS = false;
     public static final String TAG = "Pete";
 
-    public static final int GameLevels = 4;
     public static final int nBacks = 6;
+    public static final int Areas = 4;
+    public static final int Levels = 3;
 
-    String[][] nBackAchievementID = new String[GameLevels][nBacks];
-    public static boolean[][] mnBackAchievement = new boolean[GameLevels][nBacks];
-    public static boolean nBackAchievementSent = false;
-    public static int nBackAchievementAck_i = -1;
-    public static int nBackAchievementAck_j = -1;
-    public static boolean[][] nBackAchievementOnServer = new boolean[GameLevels][nBacks];
-    boolean ShowGlobalAchievemwntClicked = false;
+    public static final int _50PERCENT = 0;
+    public static final int _75PERCENT = 1;
+    public static final int _100PERCENT = 2;
+
+    String GameLeaderBoard;
+    boolean PushLeaderScore = false;
+
+    String[][][] nBackAchievementID = new String[nBacks][Areas][Levels];
+    public static boolean[][][] mnBackAchievement = new boolean[nBacks][Areas][Levels];
+
+    //public static boolean[][] nBackAchievementOnServer = new boolean[nBacks][Areas];
+    //boolean ShowGlobalAchievemwntClicked = false;
 
     // request codes we use when invoking an external activity
-    final int RC_RESOLVE = 5000, RC_UNUSED = 5001;
+    //final int RC_RESOLVE = 5000;
+    final int RC_UNUSED = 5001;
+
+    SecurePreferences preferences;
+
+    int areasizeInt = 0;
 
     TextView TextHeader;
-
-    /*****DATABASE TESTIGN********/
-    private static final String DATABASE_NAME = "game";
-    private static final String TABLE_SCORE = "score";
-    private static final String KEY_ID_SCORE = "_id";
-    private static final String KEY_SCORE = "score_value";
-    private static final String PLAYER_NAME = "player_name";
-    private static final String DATE = "date";
-    /********DATABASE TESTIGN********/
 
     private Tracker mTracker;
 
@@ -117,7 +98,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     boolean manualmode;
     CountDownTimer ShowRedTimer;
     CountDownTimer ClearRedTimer;
-    ImageView imageView;
     Boolean ShowRedTimerRunning = false;
     Boolean ClearRedTimerRunning = false;
     int random_nbr = -1;
@@ -140,11 +120,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public static int[] NewArray;
 
-    public static String[] Hiscores;
-    public static String[] Players;
-    //public static String[] Dates;
-    public static long[] Dates;
-
     private  List myVisualList = new ArrayList();
     private  List mySoundList = new ArrayList();
 
@@ -162,7 +137,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             mImageViews[l] = null;
         }
 
-        int windowWidth,windowHeight,sizeofcubeside,HeightOfGridArea=0;
+        int windowWidth,windowHeight,sizeofcubeside,HeightOfGridArea;
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -181,8 +156,12 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         //application = this.ggetApplication();
         //mTracker = application.getDefaultTracker();
 
+        SetStringsArrays();
         ReadPreferences();
         NbrOfPictures_old = NbrOfPictures;
+
+        saveLocal();
+        loadLocal();
 
         mTracker = this.getDefaultTracker();
         mTracker.setScreenName("MainActivity");
@@ -305,7 +284,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        //int sid = item.getItemId();
 
 
         return super.onOptionsItemSelected(item);
@@ -383,14 +362,12 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     @Override
     public void handleNegative() {
         Toast.makeText(this, "Negative", Toast.LENGTH_SHORT).show();
-
     }
 
     @Override
     public void RatingStarted() {
         Toast.makeText(this, "RatingStarted", Toast.LENGTH_SHORT).show();
         //easyTracker.send(MapBuilder.createEvent("RatingStarted", "rating", "5", null).build());
-
     }
 
     @Override
@@ -401,7 +378,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         String displayName;
         if (p == null) {
             if(ENABLE_LOGS) Log.v("Pete", "getCurrentPlayer() is NULL!");
-            displayName = "???";
+            //displayName = "???";
         } else {
             displayName = p.getDisplayName();
             if (ENABLE_LOGS) Log.v("Pete", "getCurrentPlayer() is " + displayName);
@@ -413,7 +390,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 playername = displayName;
                 SharedPreferences.Editor editor = SP.edit();
                 editor.putString("playername", displayName);
-                editor.commit();
+                editor.apply();
 
                 SetInitUI();
             }
@@ -468,34 +445,31 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
                 Configuration.SCREENLAYOUT_SIZE_NORMAL){
-
+            //TODO
+            if (ENABLE_LOGS) Log.d("Pete", "SCREENLAYOUT_SIZE_NORMAL");
         }
 
         if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
                 Configuration.SCREENLAYOUT_SIZE_LARGE){
-
+            //TODO
+            if (ENABLE_LOGS) Log.d("Pete", "SCREENLAYOUT_SIZE_LARGE");
         }
 
         if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
                 Configuration.SCREENLAYOUT_SIZE_XLARGE){
-
+            //TODO
+            if (ENABLE_LOGS) Log.d("Pete", "SCREENLAYOUT_SIZE_XLARGE");
         }
 
-        int PicNumberHeight = 12;
-        int PicNumberWaidth = 12;
         int FontSize = 12;
 
         TextHeader = (TextView)findViewById(R.id.headertext);
-        //TextHeader = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, PicNumberHeight, getResources().getDisplayMetrics());
-        //TextHeader.getLayoutParams().height=PicNumberHeight;
-        //TextHeader = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, PicNumberWaidth, getResources().getDisplayMetrics());
-        //TextHeader.getLayoutParams().width=PicNumberWaidth;
         TextHeader.setTextSize(TypedValue.COMPLEX_UNIT_DIP, FontSize);
         TextHeader.setTypeface(TextHeader.getTypeface(), Typeface.BOLD);
-        //TextHeader.setBackgroundResource(R.drawable.textview_magneta);
         TextHeader.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
         TextHeader.setTextColor(Color.WHITE);
-        TextHeader.setText("Player: " + playername + "\n" + "Area: " + NbrOfPictures + " nBack: " + String.valueOf(nBack) + (manualmode ? " ManualMode" : " PlayMode"));
+        String message = "Player: " + playername + "\n" + "Area: " + NbrOfPictures + " nBack: " + String.valueOf(nBack) + (manualmode ? " ManualMode" : " PlayMode");
+        TextHeader.setText(message);
     }
 
     public void Stop(View arg0){
@@ -559,6 +533,10 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public void Info(View arg0) {
         Toast.makeText(MainActivity.this, "Info clicked!!!!", Toast.LENGTH_SHORT).show();
+
+        SetStringsArrays();
+        //Games.Achievements.unlock(mHelper.getApiClient(), nBackAchievementID[0][0]);
+        //Games.Achievements.increment(mHelper.getApiClient(), nBackAchievementID[0][1],1);
     }
 
     public void Settings(View arg0) {
@@ -590,6 +568,14 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void onShowGlobalHiScores(View arg0){
         Toast.makeText(MainActivity.this, "onShowGlobalHiScores clicked!!!!", Toast.LENGTH_SHORT).show();
 
+        if (isSignedIn()) {
+            startActivityForResult(Games.Leaderboards.getAllLeaderboardsIntent(getApiClient()),RC_UNUSED);
+
+            //Get just one leaderboard...
+            //startActivityForResult(Games.Leaderboards.getLeaderboardIntent(getApiClient(), PicLeaderScoreString[0][0]),RC_UNUSED);
+        } else {
+            showAlert(getString(R.string.leaderboards_not_available));
+        }
     }
 
     public void turnOffScreen(){
@@ -597,7 +583,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         if(ENABLE_LOGS) Log.d ("Pete", "turnOffScreen...");
         getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
-
 
     public void ShowRedTimer(long startfromthis_ms) {
         if(ENABLE_LOGS) Log.v("Pete", "In ShowRedTimer...");
@@ -613,6 +598,18 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
             DatabaseHandler db = new DatabaseHandler(this);
             db.addScore(playername,ResultPercent,nBack,NbrOfPictures);
+
+            if(ResultPercent >= 50) {
+                SetAchievement(areasizeInt, nBack, _50PERCENT);
+            }
+            if(ResultPercent >= 75) {
+                PlayApplause();
+                SetAchievement(areasizeInt, nBack, _75PERCENT);
+            }
+            if(ResultPercent == 100) {
+                PlayFanfare();
+                SetAchievement(areasizeInt, nBack, _100PERCENT);
+            }
 
             ShowPopUp_OK(true);
             SetInitUI();
@@ -732,6 +729,44 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         return returnvalue;
     }
 
+    public void PlayApplause(){
+        if(MainActivity.ENABLE_LOGS) Log.v("Pete", "in PlayApplause....");
+
+        if (mp != null) {
+            if (ENABLE_LOGS) Log.d("Pete", "PlaySound() - mp.release()");
+            mp.release();
+            mp = null;
+        }
+
+        try {
+            mp = MediaPlayer.create(this, Sounds.APPLAUSE[0]);
+            mp.start();
+
+        } catch (Exception e) {
+            Toast.makeText(this, "ERROR: audio player not working.", Toast.LENGTH_LONG).show();
+            if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ERROR: audio player not working.");
+        }
+    }
+
+    public void PlayFanfare(){
+        if(MainActivity.ENABLE_LOGS) Log.v("Pete", "in PlayFanfare....");
+
+        if (mp != null) {
+            if (ENABLE_LOGS) Log.d("Pete", "PlaySound() - mp.release()");
+            mp.release();
+            mp = null;
+        }
+
+        try {
+            mp = MediaPlayer.create(this, Sounds.APPLAUSE[1]);
+            mp.start();
+
+        } catch (Exception e) {
+            Toast.makeText(this, "ERROR: audio player not working.", Toast.LENGTH_LONG).show();
+            if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ERROR: audio player not working.");
+        }
+    }
+
     public void PlaySound() {
 
         if(MainActivity.ENABLE_LOGS) Log.v("Pete", "in PlaySound....");
@@ -799,8 +834,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         if(ENABLE_LOGS) Log.v("Pete", "nback: " + nback);
         if(ENABLE_LOGS) Log.v("Pete", "nback int: " + nBack);
 
-        int picturesFromConfig = Integer.parseInt(areasize) * Integer.parseInt(areasize);
-        NbrOfPictures = picturesFromConfig;
+        areasizeInt = Integer.parseInt(areasize);
+        NbrOfPictures = Integer.parseInt(areasize) * Integer.parseInt(areasize);
     }
 
     public void ShowPopUp_OK(final boolean callShow){
@@ -829,7 +864,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         popupWindow.setHeight(ActionBar.LayoutParams.WRAP_CONTENT);
         popupWindow.setWidth(ActionBar.LayoutParams.WRAP_CONTENT);
 
-        String message = "\n" + PopUpmessage + "\n\n";
+        String message = "NA";
 
         LinearLayout ll = (LinearLayout)popupView.findViewById(R.id.popup_ll);
 
@@ -845,8 +880,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         ll.addView(rowTextView0,params);
 
         final TextView rowTextView = new TextView(this);
-        //rowTextView.setText(message);
-        rowTextView.setText(" Correct positions: " + CorrectPicClicked + " ");
+        message = " Correct positions: " + CorrectPicClicked + " ";
+        rowTextView.setText(message);
         rowTextView.setGravity(Gravity.CENTER);
         rowTextView.setTextColor(Color.WHITE);
         rowTextView.setBackgroundColor(TextBackRoundColour);
@@ -856,8 +891,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         ll.addView(rowTextView,params);
 
         final TextView rowTextView2 = new TextView(this);
-        //rowTextView.setText(message);
-        rowTextView2.setText(" Correct letters: " + CorrectSoundClicked + " ");
+        message = " Correct letters: " + CorrectSoundClicked + " ";
+        rowTextView2.setText(message);
         rowTextView2.setGravity(Gravity.CENTER);
         rowTextView2.setTextColor(Color.WHITE);
         rowTextView2.setBackgroundColor(TextBackRoundColour);
@@ -867,8 +902,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         ll.addView(rowTextView2,params);
 
         final TextView rowTextView3 = new TextView(this);
-        //rowTextView.setText(message);
-        rowTextView3.setText(" Wrong positions: " + WrongPicClicked + " ");
+        message = " Wrong positions: " + WrongPicClicked + " ";
+        rowTextView3.setText(message);
         rowTextView3.setGravity(Gravity.CENTER);
         rowTextView3.setTextColor(Color.WHITE);
         rowTextView3.setBackgroundColor(TextBackRoundColour);
@@ -878,8 +913,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         ll.addView(rowTextView3,params);
 
         final TextView rowTextView4 = new TextView(this);
-        //rowTextView.setText(message);
-        rowTextView4.setText(" Wrong letters: " + WrongSoundClicked + " ");
+        message = " Wrong letters: " + WrongSoundClicked + " ";
+        rowTextView4.setText(message);
         rowTextView4.setGravity(Gravity.CENTER);
         rowTextView4.setTextColor(Color.WHITE);
         rowTextView4.setBackgroundColor(TextBackRoundColour);
@@ -889,8 +924,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         ll.addView(rowTextView4,params);
 
         final TextView rowTextView5 = new TextView(this);
-        //rowTextView.setText(message);
-        rowTextView5.setText(" Missed positions: " + MissedPicClick + " ");
+        message = " Missed positions: " + MissedPicClick + " ";
+        rowTextView5.setText(message);
         rowTextView5.setGravity(Gravity.CENTER);
         rowTextView5.setTextColor(Color.WHITE);
         rowTextView5.setBackgroundColor(TextBackRoundColour);
@@ -900,8 +935,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         ll.addView(rowTextView5,params);
 
         final TextView rowTextView6 = new TextView(this);
-        //rowTextView.setText(message);
-        rowTextView6.setText(" Missed letters: " + MissedSoundClick + " ");
+        message = " Missed letters: " + MissedSoundClick + " ";
+        rowTextView6.setText(message);
         rowTextView6.setGravity(Gravity.CENTER);
         rowTextView6.setTextColor(Color.WHITE);
         rowTextView6.setBackgroundColor(TextBackRoundColour);
@@ -924,8 +959,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         int ResultPercent = (int)((double)(CorrectPicClicked + CorrectSoundClicked) / (double)(CorrectPicClicked + CorrectSoundClicked + WrongPicClicked + WrongSoundClicked + MissedPicClick + MissedSoundClick) * 100);
 
         final TextView rowTextView8 = new TextView(this);
-        //rowTextView.setText(message);
-        rowTextView8.setText(" Result %: " + ResultPercent + " ");
+        message = " Result %: " + ResultPercent + " ";
+        rowTextView8.setText(message);
         rowTextView8.setGravity(Gravity.CENTER);
         rowTextView8.setTextColor(Color.WHITE);
         rowTextView8.setBackgroundColor(TextBackRoundColour);
@@ -980,16 +1015,39 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         toast.show();
     }
 
-    // Input area and nBack....
-    public void SetAchievement(int Level, int nBack) {
-        if(ENABLE_LOGS) Log.v("Pete", "SetAchievement: " +  " Level: " + Level + " nBack: " + nBack);
+    public void saveLocal() {
+        //if(ENABLE_LOGS) Log.v("Pete", "AccomplishmentsOutbox saveLocal...");
 
-        mnBackAchievement[Level-2][nBack-1] = true;
+        preferences = new SecurePreferences(this, "my-preferences", "SometopSecretKey1235", true);
+
+        int testint = 668;
+        preferences.put("testint", String.valueOf(testint));
+    }
+
+    public void loadLocal() {
+        if (ENABLE_LOGS) Log.v("Pete", "AccomplishmentsOutbox loadLocal...");
+
+        //Init
+        preferences = new SecurePreferences(this, "my-preferences", "SometopSecretKey1235", true);
+
+        int testint = Integer.parseInt(preferences.getIntString("testint"));
+        if (ENABLE_LOGS) Log.v("Pete", "AccomplishmentsOutbox loadLocal - testint: " + testint);
+    }
+
+    // Input area and nBack....
+    public void SetAchievement(int Level, int nBack, int procent) {
+        if(ENABLE_LOGS) Log.v("Pete", "SetAchievement: " +  " Level: " + Level + " nBack: " + nBack + " procent: " + procent);
+
+        mnBackAchievement[Level-2][nBack-1][procent] = true;
         //TODO
         //submitPicMemoryEvent(Level, Time);
+
+        pushAccomplishments();
     }
 
     void pushAccomplishments() {
+        if(ENABLE_LOGS) Log.v("Pete", "pushAccomplishments....");
+
         //Here we should push LeaderScores, Achievements and Events
         if (!isSignedIn()) {
             // can't push to the cloud, so save locally
@@ -998,21 +1056,32 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         }
 
         //For Achievements...
-        for(int i=0;i<GameLevels;i++) {
-            for (int j = 0; j < nBacks; j++) {
+        for(int i=0;i<nBacks;i++) {
+            for (int j = 0; j < Areas; j++) {
+                for (int k = 0; k < Levels; k++) {
 
-                if (mnBackAchievement[i][j] && !nBackAchievementSent) {
-                    if(ENABLE_LOGS) Log.v("Pete", "pushAccomplishments - not unlockImmediate - i: " + i + " j: " + j);
-                    Games.Achievements.unlockImmediate(mHelper.getApiClient(),  nBackAchievementID[i][j]).setResultCallback(new myPicMemoryAchievementResultCallback());
-                    nBackAchievementSent = true;
+                    if (mnBackAchievement[i][j][k]) {
+                        if (ENABLE_LOGS) Log.v("Pete", "pushAccomplishments - not unlockImmediate - i: " + i + " j: " + j + " k " + k);
 
-                    nBackAchievementAck_i = i;
-                    nBackAchievementAck_j = j;
+                        Games.Achievements.unlock(mHelper.getApiClient(), nBackAchievementID[i][j][k]);
+                        mnBackAchievement[i][j][k] = false;
+                    }
                 }
             }
         }
+
+        //For LeaderBoard
+
+        if(PushLeaderScore) {
+            Games.Leaderboards.submitScore(mHelper.getApiClient(), GameLeaderBoard, 1);
+            PushLeaderScore = false;
+        }
+
+        //From new Doc.... No need for callbacks etc???
+        //Games.Achievements.unlock(mHelper.getApiClient(), nBackAchievementID[0][0]);
     }
 
+    /*
     class myPicMemoryAchievementResultCallback implements ResultCallback<Achievements.UpdateAchievementResult> {
 
         @Override
@@ -1031,8 +1100,123 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             }
         }
     }
-
+    */
     public void SetStringsArrays(){
-        nBackAchievementID[0][0] = getString(R.string.achievement_nback_1_area_2x2_result_50);
+        nBackAchievementID[0][0][0] = getString(R.string.achievement_nback_1_area_2x2_result_50);
+        nBackAchievementID[0][0][1] = getString(R.string.achievement_nback_1_area_2x2_result_75);
+        nBackAchievementID[0][0][2] = getString(R.string.achievement_nback_1_area_2x2_result_100);
+        nBackAchievementID[0][1][0] = getString(R.string.achievement_nback_1_area_3x3_result_50);
+        nBackAchievementID[0][1][1] = getString(R.string.achievement_nback_1_area_3x3_result_75);
+        nBackAchievementID[0][1][2] = getString(R.string.achievement_nback_1_area_3x3_result_100);
+        nBackAchievementID[0][2][0] = getString(R.string.achievement_nback_1_area_4x4_result_50);
+        nBackAchievementID[0][2][1] = getString(R.string.achievement_nback_1_area_4x4_result_75);
+        nBackAchievementID[0][2][2] = getString(R.string.achievement_nback_1_area_4x4_result_100);
+        nBackAchievementID[0][3][0] = getString(R.string.achievement_nback_1_area_5x5_result_50);
+        nBackAchievementID[0][3][1] = getString(R.string.achievement_nback_1_area_5x5_result_75);
+        nBackAchievementID[0][3][2] = getString(R.string.achievement_nback_1_area_5x5_result_100);
+
+        nBackAchievementID[1][0][0] = getString(R.string.achievement_nback_2_area_2x2_result_50);
+        nBackAchievementID[1][0][1] = getString(R.string.achievement_nback_2_area_2x2_result_75);
+        nBackAchievementID[1][0][2] = getString(R.string.achievement_nback_2_area_2x2_result_100);
+        nBackAchievementID[1][1][0] = getString(R.string.achievement_nback_2_area_3x3_result_50);
+        nBackAchievementID[1][1][1] = getString(R.string.achievement_nback_2_area_3x3_result_75);
+        nBackAchievementID[1][1][2] = getString(R.string.achievement_nback_2_area_3x3_result_100);
+        nBackAchievementID[1][2][0] = getString(R.string.achievement_nback_2_area_4x4_result_50);
+        nBackAchievementID[1][2][1] = getString(R.string.achievement_nback_2_area_4x4_result_75);
+        nBackAchievementID[1][2][2] = getString(R.string.achievement_nback_2_area_4x4_result_100);
+        nBackAchievementID[1][3][0] = getString(R.string.achievement_nback_2_area_5x5_result_50);
+        nBackAchievementID[1][3][1] = getString(R.string.achievement_nback_2_area_5x5_result_75);
+        nBackAchievementID[1][3][2] = getString(R.string.achievement_nback_2_area_5x5_result_100);
+
+        nBackAchievementID[2][0][0] = getString(R.string.achievement_nback_3_area_2x2_result_50);
+        nBackAchievementID[2][0][1] = getString(R.string.achievement_nback_3_area_2x2_result_75);
+        nBackAchievementID[2][0][2] = getString(R.string.achievement_nback_3_area_2x2_result_100);
+        nBackAchievementID[2][1][0] = getString(R.string.achievement_nback_3_area_3x3_result_50);
+        nBackAchievementID[2][1][1] = getString(R.string.achievement_nback_3_area_3x3_result_75);
+        nBackAchievementID[2][1][2] = getString(R.string.achievement_nback_3_area_3x3_result_100);
+        nBackAchievementID[2][2][0] = getString(R.string.achievement_nback_3_area_4x4_result_50);
+        nBackAchievementID[2][2][1] = getString(R.string.achievement_nback_3_area_4x4_result_75);
+        nBackAchievementID[2][2][2] = getString(R.string.achievement_nback_3_area_4x4_result_100);
+        nBackAchievementID[2][3][0] = getString(R.string.achievement_nback_3_area_5x5_result_50);
+        nBackAchievementID[2][3][1] = getString(R.string.achievement_nback_3_area_5x5_result_75);
+        nBackAchievementID[2][3][2] = getString(R.string.achievement_nback_3_area_5x5_result_100);
+
+        GameLeaderBoard =  getString(R.string.leaderboard_global_nback_3x3_playmode_hiscores);
+        /*
+        <string name="achievement_nback_1_area_2x2_result_50">CgkI5LrG0eIBEAIQCg</string>
+        <string name="achievement_nback_1_area_2x2_result_75">CgkI5LrG0eIBEAIQCQ</string>
+        <string name="achievement_nback_1_area_2x2_result_100">CgkI5LrG0eIBEAIQAw</string>
+        <string name="achievement_nback_2_area_2x2_result_50">CgkI5LrG0eIBEAIQDA</string>
+        <string name="achievement_nback_2_area_2x2_result_75">CgkI5LrG0eIBEAIQCw</string>
+        <string name="achievement_nback_2_area_2x2_result_100">CgkI5LrG0eIBEAIQBg</string>
+        <string name="achievement_nback_1_area_3x3_result_50">CgkI5LrG0eIBEAIQDQ</string>
+        <string name="achievement_nback_1_area_3x3_result_75">CgkI5LrG0eIBEAIQDg</string>
+        <string name="achievement_nback_1_area_3x3_result_100">CgkI5LrG0eIBEAIQDw</string>
+        <string name="achievement_nback_2_area_3x3_result_50">CgkI5LrG0eIBEAIQEA</string>
+        <string name="achievement_nback_2_area_3x3_result_75">CgkI5LrG0eIBEAIQEQ</string>
+        <string name="achievement_nback_2_area_3x3_result_100">CgkI5LrG0eIBEAIQEg</string>
+        <string name="achievement_nback_1_area_4x4_result_50">CgkI5LrG0eIBEAIQEw</string>
+        <string name="achievement_nback_1_area_4x4_result_75">CgkI5LrG0eIBEAIQFA</string>
+        <string name="achievement_nback_1_area_4x4_result_100">CgkI5LrG0eIBEAIQFQ</string>
+        <string name="achievement_nback_2_area_4x4_result_50">CgkI5LrG0eIBEAIQFg</string>
+        <string name="achievement_nback_2_area_4x4_result_75">CgkI5LrG0eIBEAIQFw</string>
+        <string name="achievement_nback_2_area_4x4_result_100">CgkI5LrG0eIBEAIQGA</string>
+        <string name="achievement_nback_1_area_5x5_result_50">CgkI5LrG0eIBEAIQGQ</string>
+        <string name="achievement_nback_1_area_5x5_result_75">CgkI5LrG0eIBEAIQGg</string>
+        <string name="achievement_nback_1_area_5x5_result_100">CgkI5LrG0eIBEAIQGw</string>
+        <string name="achievement_nback_2_area_5x5_result_50">CgkI5LrG0eIBEAIQHA</string>
+        <string name="achievement_nback_2_area_5x5_result_75">CgkI5LrG0eIBEAIQHQ</string>
+        <string name="achievement_nback_2_area_5x5_result_100">CgkI5LrG0eIBEAIQHg</string>
+        <string name="achievement_nback_3_area_2x2_result_50">CgkI5LrG0eIBEAIQHw</string>
+        <string name="achievement_nback_3_area_3x3_result_50">CgkI5LrG0eIBEAIQIA</string>
+        <string name="achievement_nback_3_area_4x4_result_50">CgkI5LrG0eIBEAIQIQ</string>
+        <string name="achievement_nback_3_area_5x5_result_50">CgkI5LrG0eIBEAIQIg</string>
+        <string name="achievement_nback_3_area_2x2_result_75">CgkI5LrG0eIBEAIQIw</string>
+        <string name="achievement_nback_3_area_3x3_result_75">CgkI5LrG0eIBEAIQJA</string>
+        <string name="achievement_nback_3_area_4x4_result_75">CgkI5LrG0eIBEAIQJQ</string>
+        <string name="achievement_nback_3_area_5x5_result_75">CgkI5LrG0eIBEAIQJg</string>
+        <string name="achievement_nback_3_area_2x2_result_100">CgkI5LrG0eIBEAIQJw</string>
+        <string name="achievement_nback_3_area_3x3_result_100">CgkI5LrG0eIBEAIQKA</string>
+        <string name="achievement_nback_3_area_4x4_result_100">CgkI5LrG0eIBEAIQKQ</string>
+        <string name="achievement_nback_3_area_5x5_result_100">CgkI5LrG0eIBEAIQKg</string>
+        <string name="achievement_nback_4_area_2x2_result_50">CgkI5LrG0eIBEAIQKw</string>
+        <string name="achievement_nback_4_area_3x3_result_50">CgkI5LrG0eIBEAIQLA</string>
+        <string name="achievement_nback_4_area_4x4_result_50">CgkI5LrG0eIBEAIQLQ</string>
+        <string name="achievement_nback_4_area_5x5_result_50">CgkI5LrG0eIBEAIQLg</string>
+        <string name="achievement_nback_4_area_2x2_result_75">CgkI5LrG0eIBEAIQLw</string>
+        <string name="achievement_nback_4_area_3x3_result_75">CgkI5LrG0eIBEAIQMA</string>
+        <string name="achievement_nback_4_area_4x4_result_75">CgkI5LrG0eIBEAIQMQ</string>
+        <string name="achievement_nback_4_area_5x5_result_75">CgkI5LrG0eIBEAIQMg</string>
+        <string name="achievement_nback_4_area_2x2_result_100">CgkI5LrG0eIBEAIQMw</string>
+        <string name="achievement_nback_4_area_3x3_result_100">CgkI5LrG0eIBEAIQNA</string>
+        <string name="achievement_nback_4_area_4x4_result_100">CgkI5LrG0eIBEAIQNQ</string>
+        <string name="achievement_nback_4_area_5x5_result_100">CgkI5LrG0eIBEAIQNg</string>
+        <string name="achievement_nback_5_area_2x2_result_50">CgkI5LrG0eIBEAIQNw</string>
+        <string name="achievement_nback_5_area_3x3_result_50">CgkI5LrG0eIBEAIQOA</string>
+        <string name="achievement_nback_5_area_4x4_result_50">CgkI5LrG0eIBEAIQOQ</string>
+        <string name="achievement_nback_5_area_5x5_result_50">CgkI5LrG0eIBEAIQOg</string>
+        <string name="achievement_nback_5_area_2x2_result_75">CgkI5LrG0eIBEAIQOw</string>
+        <string name="achievement_nback_5_area_3x3_result_75">CgkI5LrG0eIBEAIQPA</string>
+        <string name="achievement_nback_5_area_4x4_result_75">CgkI5LrG0eIBEAIQPQ</string>
+        <string name="achievement_nback_5_area_5x5_result_75">CgkI5LrG0eIBEAIQPg</string>
+        <string name="achievement_nback_5_area_2x2_result_100">CgkI5LrG0eIBEAIQPw</string>
+        <string name="achievement_nback_5_area_3x3_result_100">CgkI5LrG0eIBEAIQQA</string>
+        <string name="achievement_nback_5_area_4x4_result_100">CgkI5LrG0eIBEAIQQQ</string>
+        <string name="achievement_nback_5_area_5x5_result_100">CgkI5LrG0eIBEAIQQg</string>
+        <string name="achievement_nback_6_area_2x2_result_50">CgkI5LrG0eIBEAIQQw</string>
+        <string name="achievement_nback_6_area_3x3_result_50">CgkI5LrG0eIBEAIQRA</string>
+        <string name="achievement_nback_6_area_4x4_result_50">CgkI5LrG0eIBEAIQRQ</string>
+        <string name="achievement_nback_6_area_5x5_result_50">CgkI5LrG0eIBEAIQRg</string>
+        <string name="achievement_nback_6_area_2x2_result_75">CgkI5LrG0eIBEAIQRw</string>
+        <string name="achievement_nback_6_area_3x3_result_75">CgkI5LrG0eIBEAIQSA</string>
+        <string name="achievement_nback_6_area_4x4_result_75">CgkI5LrG0eIBEAIQSQ</string>
+        <string name="achievement_nback_6_area_5x5_result_75">CgkI5LrG0eIBEAIQSg</string>
+        <string name="achievement_nback_6_area_2x2_result_100">CgkI5LrG0eIBEAIQSw</string>
+        <string name="achievement_nback_6_area_3x3_result_100">CgkI5LrG0eIBEAIQTA</string>
+        <string name="achievement_nback_6_area_4x4_result_100">CgkI5LrG0eIBEAIQTQ</string>
+        <string name="achievement_nback_6_area_5x5_result_100">CgkI5LrG0eIBEAIQTg</string>
+        <string name="leaderboard_global_nback_3x3_playmode_hiscores">CgkI5LrG0eIBEAIQBw</string>
+        <string name="event_nback_1_area_2x2_100">CgkI5LrG0eIBEAIQCA</string>
+         */
     }
 }

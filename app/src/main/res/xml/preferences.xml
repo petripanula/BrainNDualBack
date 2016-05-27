@@ -20,6 +20,7 @@
         android:entryValues="@array/listValues2" />
     <ListPreference     android:title="nBack area size"
         android:summary="Select the area size used in game"
+        android:dependency="manualmode"
         android:key="areasize"
         android:defaultValue="2"
         android:entries="@array/listArray"

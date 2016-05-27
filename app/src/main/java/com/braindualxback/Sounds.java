@@ -28,4 +28,10 @@ public class Sounds {
             R.raw.fi_8,
             R.raw.fi_9,
     };
+
+    public static final int[] APPLAUSE = {
+            R.raw.applause,
+            R.raw.fanfare,
+
+    };
 }
