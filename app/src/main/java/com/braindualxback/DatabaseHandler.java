@@ -110,7 +110,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Object[] arrayObjects = new Object[6];
         // Select All Query
         //String selectQuery = "SELECT  * FROM " + TABLE_SCORE;
-        String selectQuery = "SELECT * FROM " + TABLE_SCORE + " ORDER BY CAST("+ KEY_SCORE+" AS INTEGER) DESC";
+        String selectQuery = "SELECT * FROM " + TABLE_SCORE + " ORDER BY CAST("+ KEY_SCORE+" AS INTEGER) DESC, " + NBACK + " DESC, " + AREA + " DESC";
         /*
         String selectQuery = "SELECT " + KEY_SCORE + " * "
                 + KEY_SPONSOR + " AS result FROM " + DATABASE_TABLE + " ORDER BY "+ KEY_SWIMMERLAPS+" DESC", null);

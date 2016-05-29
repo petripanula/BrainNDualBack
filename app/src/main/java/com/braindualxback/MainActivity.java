@@ -149,13 +149,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         //getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
 
-        //easyTracker = EasyTracker.getInstance(MainActivity.this);
-        ///easyTracker.send(MapBuilder.createEvent("Application","open", "1", null).build());
-        // Obtain the shared Tracker instance.
-        //AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        //application = this.ggetApplication();
-        //mTracker = application.getDefaultTracker();
-
         SetStringsArrays();
         ReadPreferences();
         NbrOfPictures_old = NbrOfPictures;
@@ -214,14 +207,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         gridview = (GridView) findViewById(R.id.gridview);
         sizeofcubeside = (int)sqrt(NbrOfPictures);
         HeightOfGridArea = windowHeight*6/7;
-
-        /*
-        imageView = new ImageView(this);
-        BitmapDrawable ob = new BitmapDrawable(getResources(), decodeSampledBitmapFromResource(imageView.getResources(), Pictures.BACKGROUND_IDS[pic_id], windowWidth, windowHeight));
-
-        LinearLayout rLayout = (LinearLayout) findViewById (R.id.memory_activity);
-        rLayout.setBackground(ob);
-        */
 
         gridview.setNumColumns(sizeofcubeside);
 
@@ -475,9 +460,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void Stop(View arg0){
         Toast.makeText(MainActivity.this, "Stop!!!!", Toast.LENGTH_SHORT).show();
 
+        PrintLists();
+
         SetInitUI();
         StopAllTimers();
         InitAll();
+
+        PrintLists();
     }
 
     public void Restart(View arg0){
@@ -600,15 +589,15 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             db.addScore(playername,ResultPercent,nBack,NbrOfPictures);
 
             if(ResultPercent >= 50) {
-                SetAchievement(areasizeInt, nBack, _50PERCENT);
+                SetAchievement(nBack, areasizeInt, _50PERCENT);
             }
             if(ResultPercent >= 75) {
                 PlayApplause();
-                SetAchievement(areasizeInt, nBack, _75PERCENT);
+                SetAchievement(nBack, areasizeInt, _75PERCENT);
             }
             if(ResultPercent == 100) {
                 PlayFanfare();
-                SetAchievement(areasizeInt, nBack, _100PERCENT);
+                SetAchievement(nBack, areasizeInt, _100PERCENT);
             }
 
             ShowPopUp_OK(true);
@@ -698,7 +687,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         int returnvalue;
 
         if(myVisualList.size()<nBack)
-            return 10;
+            return -99;
 
         returnvalue = (int) myVisualList.get(index);
 
@@ -720,13 +709,23 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         int returnvalue;
 
         if(mySoundList.size()<nBack)
-            return 10;
+            return -99;
 
         returnvalue = (int) mySoundList.get(index);
 
         if(ENABLE_LOGS) Log.v("Pete", "GetFromList: " + returnvalue);
 
         return returnvalue;
+    }
+
+    public void PrintLists(){
+        if(ENABLE_LOGS) Log.v("Pete", "In PrintLists...");
+        for(int l=0; l<mySoundList.size(); l++) {
+            if(ENABLE_LOGS) Log.v("Pete", "mySoundList: " + mySoundList.get(l));
+        }
+        for(int l=0; l<mySoundList.size(); l++) {
+            if(ENABLE_LOGS) Log.v("Pete", "myVisualList: " + myVisualList.get(l));
+        }
     }
 
     public void PlayApplause(){
@@ -797,10 +796,11 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void InitAll(){
 
         int color = Color.parseColor("#FFFFFF");
-        for(int l=0; l<mImageViews.length; l++) {
 
-            if(mImageViews[l] != null)
-                mImageViews[l].setColorFilter(color);
+        for (ImageView mImageView : mImageViews) {
+
+            if (mImageView != null)
+                mImageView.setColorFilter(color);
         }
 
         myVisualList.clear();
@@ -815,6 +815,9 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         WrongSoundClicked = 0;
         MissedPicClick = 0;
         MissedSoundClick = 0;
+        random_nbr = -1;
+        sound_id = -1;
+
     }
 
     public void ReadPreferences(){
@@ -864,7 +867,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         popupWindow.setHeight(ActionBar.LayoutParams.WRAP_CONTENT);
         popupWindow.setWidth(ActionBar.LayoutParams.WRAP_CONTENT);
 
-        String message = "NA";
+        String message;
 
         LinearLayout ll = (LinearLayout)popupView.findViewById(R.id.popup_ll);
 
@@ -1035,10 +1038,10 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     // Input area and nBack....
-    public void SetAchievement(int Level, int nBack, int procent) {
+    public void SetAchievement(int nBack, int Level, int procent) {
         if(ENABLE_LOGS) Log.v("Pete", "SetAchievement: " +  " Level: " + Level + " nBack: " + nBack + " procent: " + procent);
 
-        mnBackAchievement[Level-2][nBack-1][procent] = true;
+        mnBackAchievement[nBack-1][Level-2][procent] = true;
         //TODO
         //submitPicMemoryEvent(Level, Time);
 

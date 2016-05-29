@@ -50,7 +50,7 @@ public class ScoresActivity extends AppCompatActivity {
         String HTMLsourceString;
         int FontSizeHeader = 14;
         int FontSize = 12;
-        int tablesize = 10;
+        int tablesize = 20;
         int TextBackRoundColour = 0xaa000000;
 
         DatabaseHandler db = new DatabaseHandler(this);
@@ -113,13 +113,16 @@ public class ScoresActivity extends AppCompatActivity {
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
 
+        int k=0;
+
         for(int j = 0; j < tablesize; j++){
             // create a new textview
             final TextView rowTextView = new TextView(this);
 
             Date resultdate = new Date(Dates[j]);
 
-            HTMLsourceString = "<font color=#00FF00> <b>" + Players[j] + "</b> - " + areas[j] + " - " + nBacks[j] + " - <b>" + Hiscores[j] + "</b> - " + sdf.format(resultdate) + "</font>";
+            k++;
+            HTMLsourceString = "<font color=#00FF00><b>("+k+")</b> <b>" + Players[j] + "</b> - " + areas[j] + " - " + nBacks[j] + " - <b>" + Hiscores[j] + "</b> - " + sdf.format(resultdate) + "</font>";
 
             rowTextView.setText(Html.fromHtml(HTMLsourceString));
             rowTextView.setGravity(Gravity.CENTER);
