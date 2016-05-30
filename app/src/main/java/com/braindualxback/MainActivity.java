@@ -59,6 +59,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public static final int _75PERCENT = 1;
     public static final int _100PERCENT = 2;
 
+    public static final int PROPABILITY = 5;
+
     String GameLeaderBoard;
     boolean PushLeaderScore = false;
     boolean ContinuePlaying = true;
@@ -98,7 +100,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         }
         return mTracker;
     }
-    //private EasyTracker easyTracker = null;
 
     private static MediaPlayer mp;
     private static MediaPlayer mp_click;
@@ -141,6 +142,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     private  List mySoundList = new ArrayList();
 
     GridView gridview;
+
+    Random random = new Random();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -393,9 +396,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         findViewById(R.id.horizontalview).setVisibility(View.GONE);
         findViewById(R.id.linearview).setVisibility(View.VISIBLE);
+        findViewById(R.id.undergrid).setVisibility(View.VISIBLE);
 
-        View b_out = findViewById(R.id.undergrid);
-        b_out.setVisibility(View.VISIBLE);
 
         GamePoints = 0;
 
@@ -433,9 +435,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void SetInitUI(){
         findViewById(R.id.horizontalview).setVisibility(View.VISIBLE);
         findViewById(R.id.linearview).setVisibility(View.GONE);
-
-        View b_out = findViewById(R.id.undergrid);
-        b_out.setVisibility(View.GONE);
+        findViewById(R.id.undergrid).setVisibility(View.GONE);
 
         if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
                 Configuration.SCREENLAYOUT_SIZE_NORMAL){
@@ -469,8 +469,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void Stop(View arg0){
         if(ENABLE_LOGS) Log.v("Pete", "Stop clicked...");
 
-        View b_out = findViewById(R.id.undergrid);
-        b_out.setVisibility(View.GONE);
+        findViewById(R.id.undergrid).setVisibility(View.GONE);
 
         //PrintLists();
 
@@ -683,7 +682,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 //Played level only once...
                 if (increaseNback[nBack] == 1) {
                     if (PlayResult[nBack] == 1) {
-
+                        findViewById(R.id.undergrid).setVisibility(View.VISIBLE);
                     } else {
                         if(ENABLE_LOGS) Log.v("Pete", "Game over.....");
                         //DatabaseHandler db = new DatabaseHandler(this);
@@ -694,7 +693,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 }
                 if (increaseNback[nBack] == 2) {
                     if (PlayResult[nBack] == 2) {
-
+                        findViewById(R.id.undergrid).setVisibility(View.VISIBLE);
                     } else {
                         if(ENABLE_LOGS) Log.v("Pete", "Game over.....");
                         db.addScore_game(playername,GamePoints);
@@ -719,13 +718,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 if(ENABLE_LOGS) Log.v("Pete", "ShowRedTimer onFinish...");
                 ShowRedTimerRunning = false;
 
-                if( GetFromSoundList(nBack - 1) == sound_id && !ClickedSound){
+                if(GetFromSoundList(nBack - 1) == sound_id && !ClickedSound){
                     ShowToast("MISSED LETTER!");
                     MissedSoundClick+=1;
                     UpdatePlayerPoint(-10);
                 }
 
-                if( GetFromVisualList(nBack - 1) == random_nbr && !ClickedPic){
+                if(GetFromVisualList(nBack - 1) == random_nbr && !ClickedPic){
                     ShowToast("MISSED POSITION!");
                     MissedPicClick+=1;
                     UpdatePlayerPoint(-10);
@@ -737,8 +736,19 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 addItemToVisualList(random_nbr);
                 addItemToSoundList(sound_id);
 
-                Random random = new Random();
-                random_nbr = random.nextInt(NbrOfPictures);
+                //Random random2 = new Random();
+                int random2_nbr = random.nextInt(PROPABILITY);
+
+                if(ENABLE_LOGS) Log.v("Pete", "random2_nbr: " + random2_nbr);
+
+                if(PictureSteps - NumberOfPicturesToShow >  nBack && random2_nbr == 3) {
+                    //if (ENABLE_LOGS) Log.v("Pete", "GetFromVisualList(nBack): " + GetFromVisualList(nBack));
+                    random_nbr = GetFromVisualList(nBack-1);
+                }else {
+
+                    //Random random = new Random();
+                    random_nbr = random.nextInt(NbrOfPictures);
+                }
 
                 if(ENABLE_LOGS) Log.v("Pete", "random_nbr: " + random_nbr);
 
@@ -800,8 +810,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             }
         }.start();
     }
-
-
 
     private void addItemToVisualList(int value){
         if(myVisualList.size()<10){
@@ -899,7 +907,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         if(MainActivity.ENABLE_LOGS) Log.v("Pete", "in PlaySound....");
         int nbr_of_pictures = 0;
-        Random random_sound = new Random();
+        //Random random_sound = new Random();
 
         if(Language==1){
             if(Soundtheme==1)
@@ -913,8 +921,24 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 nbr_of_pictures = Sounds.FI_NBR_IDS.length;
         }
 
-        int random_range = nbr_of_pictures - 1;
-        sound_id = random_sound.nextInt(random_range - 1 + 1) + 1;
+        //Random random3 = new Random();
+        int random3_nbr = random.nextInt(PROPABILITY);
+
+        if(ENABLE_LOGS) Log.v("Pete", "random3_nbr: " + random3_nbr);
+
+        if(PictureSteps - NumberOfPicturesToShow >  nBack && random3_nbr == 3) {
+            //if (ENABLE_LOGS) Log.v("Pete", "GetFromVisualList(nBack): " + GetFromVisualList(nBack));
+            sound_id = GetFromSoundList(nBack-1);
+        }else {
+
+            int random_range = nbr_of_pictures - 1;
+            sound_id = random.nextInt(random_range - 1 + 1) + 1;
+            //Random random = new Random();
+            //random_nbr = random.nextInt(NbrOfPictures);
+        }
+
+        //int random_range = nbr_of_pictures - 1;
+        //sound_id = random_sound.nextInt(random_range - 1 + 1) + 1;
 
         if (mp != null) {
             if (ENABLE_LOGS) Log.d("Pete", "PlaySound() - mp.release()");
@@ -1187,11 +1211,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         }
 
+        message = "OK";
+
         Button btnDismiss = new Button(this);
         LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         params2.setMargins(5, 5, 5, 20);
         btnDismiss.setLayoutParams(params2);
-        btnDismiss.setText("OK");
+        btnDismiss.setText(message);
         btnDismiss.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         btnDismiss.setBackgroundResource(R.drawable.button_info_page);
         btnDismiss.setTextColor(Color.WHITE);
@@ -1263,8 +1289,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         if(ENABLE_LOGS) Log.v("Pete", "SetAchievement: " +  " Level: " + Level + " nBack: " + nBack + " procent: " + procent);
 
         mnBackAchievement[nBack-1][Level-2][procent] = true;
-        //TODO
-        //submitPicMemoryEvent(Level, Time);
 
         pushAccomplishments();
     }
@@ -1437,7 +1461,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void PlayClick() {
+
         if(EnableClickSounds){
+            if(mp_click!=null){
+                mp_click.release();
+                mp_click=null;
+            }
+
             mp_click = MediaPlayer.create(this, R.raw.click);
             mp_click.start();
         }

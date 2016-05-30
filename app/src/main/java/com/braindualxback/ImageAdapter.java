@@ -68,7 +68,8 @@ public class ImageAdapter extends BaseAdapter {
                 if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "imageView.setId: " + position);
                 MainActivity.mImageViews[position] = imageView;
 
-                imageView.setImageBitmap(decodeSampledBitmapFromResource(imageView.getResources(), MainActivity.NewArray[0], picture_size, picture_size));
+                //imageView.setImageBitmap(decodeSampledBitmapFromResource(imageView.getResources(), MainActivity.NewArray[0], picture_size, picture_size));
+                imageView.setImageResource(MainActivity.NewArray[0]);
             }
 
             imageView.setId(position);
