@@ -5,11 +5,23 @@ package com.braindualxback;
  */
 public class Sounds {
 
+    public static final int[] EN_ABC_IDS = {
+            R.raw.a,
+            R.raw.b,
+            R.raw.h,
+            R.raw.y,
+            R.raw.f,
+            R.raw.c,
+            R.raw.x,
+            R.raw.z,
+            R.raw.w,
+    };
+
     public static final int[] FI_ABC_IDS = {
             R.raw.fi_aa,
             R.raw.fi_b,
             R.raw.fi_c,
-            R.raw.fi_d,
+            R.raw.fi_y,
             R.raw.fi_i,
             R.raw.fi_f,
             R.raw.fi_k,
@@ -27,6 +39,18 @@ public class Sounds {
             R.raw.fi_7,
             R.raw.fi_8,
             R.raw.fi_9,
+    };
+
+    public static final int[] EN_NBR_IDS = {
+            R.raw._1,
+            R.raw._2,
+            R.raw._3,
+            R.raw._4,
+            R.raw._5,
+            R.raw._6,
+            R.raw._7,
+            R.raw._8,
+            R.raw._9,
     };
 
     public static final int[] APPLAUSE = {

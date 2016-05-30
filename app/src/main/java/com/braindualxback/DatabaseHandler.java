@@ -15,7 +15,7 @@ import java.util.Arrays;
 public class DatabaseHandler extends SQLiteOpenHelper {
 
     // All Static variables
-// Database Version
+    // Database Version
     private static final int DATABASE_VERSION = 1;
 
     // Database Name
@@ -23,10 +23,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     // Table name
     private static final String TABLE_SCORE = "score";
+    private static final String TABLE_SCORE_GAME = "score_game";
 
     // Score Table Columns names
     private static final String KEY_ID_SCORE = "_id";
     private static final String KEY_SCORE = "score_value";
+    private static final String KEY_SCORE_GAME = "score_value_game";
     private static final String PLAYER_NAME = "player_name";
     private static final String DATE = "date";
     private static final String NBACK = "nback";
@@ -49,7 +51,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "onCreate: " + CREATE_SCORE_TABLE);
 
+        String CREATE_SCORE_TABLE_GAME = "CREATE TABLE " + TABLE_SCORE_GAME + "("
+                + KEY_ID_SCORE + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + PLAYER_NAME + " TEXT,"
+                + DATE + " int,"
+                + KEY_SCORE_GAME + " TEXT" + ")";
+
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "onCreate: " + CREATE_SCORE_TABLE_GAME);
+
+
         db.execSQL(CREATE_SCORE_TABLE);
+        db.execSQL(CREATE_SCORE_TABLE_GAME);
     }
 
     // Upgrading database
@@ -57,6 +69,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // Drop older table if existed
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_SCORE);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_SCORE_GAME);
 
         // Create tables again
         onCreate(db);
@@ -84,7 +97,22 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.insert(TABLE_SCORE, null, values);
 
         db.close();
+    }
 
+    // Adding new score
+    public void addScore_game(String Player, int score) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(PLAYER_NAME, Player); // name
+        values.put(DATE, System.currentTimeMillis());
+        values.put(KEY_SCORE_GAME, score); // score value
+        // Inserting Values
+        db.insert(TABLE_SCORE_GAME, null, values);
+
+        db.close();
     }
 
     public int getDBsize(){
@@ -97,6 +125,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.close();
 
         if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "db_size: " + db_size);
+
+        return  db_size;
+    }
+
+    public int getDBsize_game(){
+        int db_size = 0;
+        String selectQuery = "SELECT  * FROM " + TABLE_SCORE_GAME;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        db_size = cursor.getCount();
+        cursor.close();
+        db.close();
+
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "db_size_game: " + db_size);
 
         return  db_size;
     }
@@ -167,6 +209,52 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         arrayObjects [2] = nback;
         arrayObjects [3] = area;
         arrayObjects [4] = score;
+
+        return arrayObjects;
+    }
+
+    public Object[] getAll_game() {
+
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "getAll_game()...");
+
+        Object[] arrayObjects = new Object[3];
+        // Select All Query
+        String selectQuery = "SELECT * FROM " + TABLE_SCORE_GAME + " ORDER BY CAST("+ KEY_SCORE_GAME+" AS INTEGER) DESC";
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        // looping through all rows and adding to list
+
+        int i = 0;
+
+        String[] player = new String[cursor.getCount()];
+        long[] date = new long[cursor.getCount()];
+        String[] score = new String[cursor.getCount()];
+
+        while (cursor.moveToNext()) {
+
+            player[i] = cursor.getString(1);
+            date[i] = cursor.getLong(2);
+            score[i] = cursor.getString(3);
+
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getString(1) player: " + cursor.getString(1));
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getLong(2) date: " + cursor.getLong(2));
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getString(3) score: " + cursor.getString(3));
+
+            i++;
+
+        }
+        cursor.close();
+        db.close();
+        /*
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "score: " + Arrays.toString(score));
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "date: " + Arrays.toString(date));
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "player: " + Arrays.toString(player));
+        */
+        arrayObjects [0] = player;
+        arrayObjects [1] = date;
+        arrayObjects [2] = score;
 
         return arrayObjects;
     }

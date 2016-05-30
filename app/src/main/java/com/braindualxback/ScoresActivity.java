@@ -31,6 +31,10 @@ public class ScoresActivity extends AppCompatActivity {
     public static int[] nBacks;
     public static int[] areas;
 
+    public static String[] Hiscores_game;
+    public static String[] Players_game;
+    public static long[] Dates_game;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -55,6 +59,7 @@ public class ScoresActivity extends AppCompatActivity {
 
         DatabaseHandler db = new DatabaseHandler(this);
         Object[] arrayObjects = db.getAll();
+        Object[] arrayObjects_game = db.getAll_game();
 
         Hiscores = new String[db.getDBsize()];
         Players = new String[db.getDBsize()];
@@ -67,6 +72,14 @@ public class ScoresActivity extends AppCompatActivity {
         nBacks = (int[])arrayObjects[2];
         areas = (int[])arrayObjects[3];
         Hiscores = (String[])arrayObjects[4];
+
+        Hiscores_game = new String[db.getDBsize_game()];
+        Players_game = new String[db.getDBsize_game()];
+        Dates_game = new long[db.getDBsize_game()];
+
+        Players_game = (String[])arrayObjects_game[0];
+        Dates_game = (long[])arrayObjects_game[1];
+        Hiscores_game = (String[])arrayObjects_game[2];
 
         if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
                 Configuration.SCREENLAYOUT_SIZE_NORMAL){
@@ -89,8 +102,18 @@ public class ScoresActivity extends AppCompatActivity {
 
         LinearLayout ll = (LinearLayout) findViewById(R.id.my_hiscore);
 
+        final TextView ManualModeHeader = new TextView(this);
+        HTMLsourceString = "<font color=#00FF00><b> MANUALMODE </b></font>";
+        ManualModeHeader.setText(Html.fromHtml(HTMLsourceString));
+        ManualModeHeader.setGravity(Gravity.CENTER);
+        ManualModeHeader.setTextColor(Color.WHITE);
+        ManualModeHeader.setBackgroundColor(TextBackRoundColour);
+        ManualModeHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeHeader);
+        // add the textview to the linearlayout
+        ll.addView(ManualModeHeader);
+
         final TextView HeaderTextView = new TextView(this);
-        HTMLsourceString = "<font color=#00FF00> PLAYER - AREA SIZE - nBACK - SCORE - DATE <b></b></font>";
+        HTMLsourceString = "<font color=#00FF00><b> <u>PLAYER - AREA SIZE - nBACK - SCORE % - DATE</u> </b></font>";
         HeaderTextView.setText(Html.fromHtml(HTMLsourceString));
         HeaderTextView.setGravity(Gravity.CENTER);
         HeaderTextView.setTextColor(Color.WHITE);
@@ -99,13 +122,14 @@ public class ScoresActivity extends AppCompatActivity {
         // add the textview to the linearlayout
         ll.addView(HeaderTextView);
 
+        /*
         final TextView SpacesTextView = new TextView(this);
         SpacesTextView.setText("\n");
         SpacesTextView.setBackgroundColor(TextBackRoundColour);
         SpacesTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeHeader);
         // add the textview to the linearlayout
         ll.addView(SpacesTextView);
-
+        */
 
         if (db.getDBsize()<tablesize){
             tablesize = db.getDBsize();
@@ -114,7 +138,6 @@ public class ScoresActivity extends AppCompatActivity {
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
 
         int k=0;
-
         for(int j = 0; j < tablesize; j++){
             // create a new textview
             final TextView rowTextView = new TextView(this);
@@ -132,6 +155,61 @@ public class ScoresActivity extends AppCompatActivity {
             // add the textview to the linearlayout
             ll.addView(rowTextView);
         }
+
+        final TextView SpacesTextView2 = new TextView(this);
+        SpacesTextView2.setText("\n");
+        SpacesTextView2.setBackgroundColor(TextBackRoundColour);
+        SpacesTextView2.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeHeader);
+        // add the textview to the linearlayout
+        ll.addView(SpacesTextView2);
+
+        final TextView PlayModeHeader = new TextView(this);
+        HTMLsourceString = "<font color=#00FF00><b> GAMEMODE </b></font>";
+        PlayModeHeader.setText(Html.fromHtml(HTMLsourceString));
+        PlayModeHeader.setGravity(Gravity.CENTER);
+        PlayModeHeader.setTextColor(Color.WHITE);
+        PlayModeHeader.setBackgroundColor(TextBackRoundColour);
+        PlayModeHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeHeader);
+        // add the textview to the linearlayout
+        ll.addView(PlayModeHeader);
+
+        final TextView HeaderTextView2 = new TextView(this);
+        HTMLsourceString = "<font color=#00FF00><b> <u>PLAYER - SCORE - DATE</u> </b></font>";
+        HeaderTextView2.setText(Html.fromHtml(HTMLsourceString));
+        HeaderTextView2.setGravity(Gravity.CENTER);
+        HeaderTextView2.setTextColor(Color.WHITE);
+        HeaderTextView2.setBackgroundColor(TextBackRoundColour);
+        HeaderTextView2.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeHeader);
+        // add the textview to the linearlayout
+        ll.addView(HeaderTextView2);
+
+        tablesize = 10;
+        if (db.getDBsize_game()<tablesize){
+            tablesize = db.getDBsize_game();
+        }
+
+        if(MainActivity.ENABLE_LOGS) Log.v("Pete", "tablesize: " + tablesize);
+
+        k=0;
+        for(int j = 0; j < tablesize; j++){
+            // create a new textview
+            final TextView rowTextView = new TextView(this);
+
+            Date resultdate = new Date(Dates_game[j]);
+
+            k++;
+            HTMLsourceString = "<font color=#00FF00><b>("+k+")</b> <b>" + Players_game[j] + "</b> - <b>" + Hiscores_game[j] + "</b> - " + sdf.format(resultdate) + "</font>";
+
+            rowTextView.setText(Html.fromHtml(HTMLsourceString));
+            rowTextView.setGravity(Gravity.CENTER);
+            rowTextView.setTextColor(Color.WHITE);
+            rowTextView.setBackgroundColor(TextBackRoundColour);
+            rowTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+            // add the textview to the linearlayout
+            ll.addView(rowTextView);
+        }
+
+
     }
 
     @Override

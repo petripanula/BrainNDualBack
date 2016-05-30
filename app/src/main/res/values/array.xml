@@ -29,4 +29,21 @@
         <item>5</item>
         <item>6</item>
     </string-array>
+    <string-array name="listArray3">
+        <item>Letters</item>
+        <item>Numbers</item>
+    </string-array>
+    <string-array name="listValues3">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    <string-array name="listArray4">
+        <item>English</item>
+        <item>Finnish</item>
+    </string-array>
+    <string-array name="listValues4">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
 </resources>
