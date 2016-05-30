@@ -35,6 +35,19 @@
         android:gravity="center"
         />
 
+    <TextView
+        android:id="@+id/undergrid"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.5"
+        android:text="@string/hello_world"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:textColor="#ffffff"
+        android:textColorHighlight="#000000"
+        android:textIsSelectable="true"
+        />
+
     <LinearLayout
         android:id="@+id/linearview"
         android:layout_width="fill_parent"

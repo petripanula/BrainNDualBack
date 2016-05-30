@@ -174,7 +174,7 @@ public class ScoresActivity extends AppCompatActivity {
         ll.addView(PlayModeHeader);
 
         final TextView HeaderTextView2 = new TextView(this);
-        HTMLsourceString = "<font color=#00FF00><b> <u>PLAYER - SCORE - DATE</u> </b></font>";
+        HTMLsourceString = "<font color=#00FF00><b> <u>PLAYER - POINTS - DATE</u> </b></font>";
         HeaderTextView2.setText(Html.fromHtml(HTMLsourceString));
         HeaderTextView2.setGravity(Gravity.CENTER);
         HeaderTextView2.setTextColor(Color.WHITE);

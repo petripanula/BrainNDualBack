@@ -9,7 +9,7 @@
         android:key="popup" />
     <CheckBoxPreference android:title="Enable click sounds"
         android:defaultValue="false"
-        android:summary="This option if selected will play click sound when buttons clicked"
+        android:summary="This option if selected will play click sound when matching buttons clicked"
         android:key="clicksounds" />
     <CheckBoxPreference android:title="Enable manual mode"
         android:defaultValue="false"

@@ -166,8 +166,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         //getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
 
-        mp_click = MediaPlayer.create(this, R.raw.click);
-
         SetStringsArrays();
         ReadPreferences();
         NbrOfPictures_old = NbrOfPictures;
@@ -390,13 +388,14 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void Start(View arg0){
-        //Toast.makeText(MainActivity.this, "Start!!!!", Toast.LENGTH_SHORT).show();
-        PlayClick();
 
         ShowRedTimer(5000);
 
         findViewById(R.id.horizontalview).setVisibility(View.GONE);
         findViewById(R.id.linearview).setVisibility(View.VISIBLE);
+
+        View b_out = findViewById(R.id.undergrid);
+        b_out.setVisibility(View.VISIBLE);
 
         GamePoints = 0;
 
@@ -423,11 +422,20 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             mp = null;
         }
 
+        if (mp_click != null) {
+            if (ENABLE_LOGS) Log.d("Pete", "StopAllTimers() - mp_click.release()");
+            mp_click.release();
+            mp_click = null;
+        }
+
     }
 
     public void SetInitUI(){
         findViewById(R.id.horizontalview).setVisibility(View.VISIBLE);
         findViewById(R.id.linearview).setVisibility(View.GONE);
+
+        View b_out = findViewById(R.id.undergrid);
+        b_out.setVisibility(View.GONE);
 
         if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
                 Configuration.SCREENLAYOUT_SIZE_NORMAL){
@@ -459,8 +467,10 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void Stop(View arg0){
-        PlayClick();
-        Toast.makeText(MainActivity.this, "Stop!!!!", Toast.LENGTH_SHORT).show();
+        if(ENABLE_LOGS) Log.v("Pete", "Stop clicked...");
+
+        View b_out = findViewById(R.id.undergrid);
+        b_out.setVisibility(View.GONE);
 
         //PrintLists();
 
@@ -474,8 +484,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void Restart(View arg0){
-        PlayClick();
-        Toast.makeText(MainActivity.this, "Restart!!!!", Toast.LENGTH_SHORT).show();
+        if(ENABLE_LOGS) Log.v("Pete", "Restart clicked...");
 
         for(int l=0; l<mImageViews.length; l++) {
             mImageViews[l] = null;
@@ -507,7 +516,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         ClickedSound = true;
 
-        if( GetFromSoundList(nBack - 1) == sound_id){
+        if(GetFromSoundList(nBack - 1) == sound_id){
             ShowToast("CORRECT LETTER!");
             CorrectSoundClicked+=1;
             UpdatePlayerPoint(10);
@@ -526,12 +535,11 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         ClickedPic = true;
 
-        if( GetFromVisualList(nBack - 1) == random_nbr){
+        if(GetFromVisualList(nBack - 1) == random_nbr){
             ShowToast("CORRECT POSITION!");
             CorrectPicClicked+=1;
             UpdatePlayerPoint(10);
         }else{
-            //Toast.makeText(MainActivity.this, "WRONG POSITION!", Toast.LENGTH_SHORT).show();
             ShowToast("WRONG POSITION!");
             WrongPicClicked+=1;
             UpdatePlayerPoint(-10);
@@ -539,13 +547,11 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void Info(View arg0) {
-        PlayClick();
-        Toast.makeText(MainActivity.this, "Info clicked!!!!", Toast.LENGTH_SHORT).show();
+        if(ENABLE_LOGS) Log.v("Pete", "Info clicked...");
 
-        GamePoints = 110;
-        PushLeaderScore = true;
-        pushAccomplishments();
-
+        //GamePoints = 110;
+        //PushLeaderScore = true;
+        //pushAccomplishments();
         //DatabaseHandler db = new DatabaseHandler(this);
         //db.addScore_game(playername,GamePoints++);
         //SetStringsArrays();
@@ -554,8 +560,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void Settings(View arg0) {
-        PlayClick();
-        Toast.makeText(MainActivity.this, "Settings clicked!!!!", Toast.LENGTH_SHORT).show();
+        if(ENABLE_LOGS) Log.v("Pete", "Settings clicked...");
         mTracker.send(new HitBuilders.EventBuilder().setCategory("Action").setAction("Settings").build());
 
         Intent intent = new Intent(this, SettingsActivity.class);
@@ -563,15 +568,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void onShowLocalHiScores(View arg0){
-        PlayClick();
-        Toast.makeText(MainActivity.this, "onShowLocalHiScores clicked!!!!", Toast.LENGTH_SHORT).show();
+        if(ENABLE_LOGS) Log.v("Pete", "onShowLocalHiScores clicked...");
 
         Intent intent = new Intent(this, ScoresActivity.class);
         startActivity(intent);
     }
 
     public void onShowAchievementsRequested(View arg0){
-        PlayClick();
         Toast.makeText(MainActivity.this, "onShowAchievementsRequested clicked!!!!", Toast.LENGTH_SHORT).show();
 
         if (isSignedIn()) {
@@ -609,8 +612,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void onShowGlobalHiScores(View arg0){
-        PlayClick();
-        Toast.makeText(MainActivity.this, "onShowGlobalHiScores clicked!!!!", Toast.LENGTH_SHORT).show();
+        if(ENABLE_LOGS) Log.v("Pete", "onShowGlobalHiScores clicked...");
 
         if (isSignedIn()) {
             startActivityForResult(Games.Leaderboards.getAllLeaderboardsIntent(getApiClient()),RC_UNUSED);
@@ -631,7 +633,17 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void ShowRedTimer(long startfromthis_ms) {
         if(ENABLE_LOGS) Log.v("Pete", "In ShowRedTimer...");
 
+        int FontSize = 20;
+        TextHeader = (TextView)findViewById(R.id.undergrid);
+        TextHeader.setTextSize(TypedValue.COMPLEX_UNIT_DIP, FontSize);
+        TextHeader.setTypeface(TextHeader.getTypeface(), Typeface.BOLD);
+        TextHeader.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+        TextHeader.setTextColor(Color.WHITE);
+        String message = "" + NumberOfPicturesToShow;
+        TextHeader.setText(message);
+
         NumberOfPicturesToShow-=1;
+
         if(ENABLE_LOGS) Log.v("Pete", "NumberOfPicturesToShow: " + NumberOfPicturesToShow);
 
         if(NumberOfPicturesToShow<=0){
@@ -1425,8 +1437,11 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void PlayClick() {
-        if(EnableClickSounds)
+        if(EnableClickSounds){
+            mp_click = MediaPlayer.create(this, R.raw.click);
             mp_click.start();
+        }
+
     }
 
 }
