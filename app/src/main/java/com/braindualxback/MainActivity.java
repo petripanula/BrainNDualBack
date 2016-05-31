@@ -40,9 +40,11 @@ import com.google.android.gms.games.Games;
 import com.google.android.gms.games.GamesActivityResultCodes;
 import com.google.android.gms.games.Player;
 import com.google.example.games.basegameutils.BaseGameActivity;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
 
 public class MainActivity extends BaseGameActivity implements NumberPicker.OnValueChangeListener,RateMeMaybe.OnRMMUserChoiceListener {
 
@@ -68,7 +70,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     int Language;
     int Soundtheme;
-
 
     String[][][] nBackAchievementID = new String[nBacks][Areas][Levels];
     public static boolean[][][] mnBackAchievement = new boolean[nBacks][Areas][Levels];
@@ -138,8 +139,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public static int[] NewArray;
 
-    private  List myVisualList = new ArrayList();
-    private  List mySoundList = new ArrayList();
+    private  List<Integer> myVisualList = new ArrayList();
+    private  List<Integer> mySoundList = new ArrayList();
 
     GridView gridview;
 
@@ -457,6 +458,24 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         int FontSize = 12;
 
+        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                Configuration.SCREENLAYOUT_SIZE_NORMAL){
+            if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ScoresActivity SCREENLAYOUT_SIZE_NORMAL...");
+            FontSize = 12;
+        }
+
+        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                Configuration.SCREENLAYOUT_SIZE_LARGE){
+            if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ScoresActivity SCREENLAYOUT_SIZE_LARGE...");
+            FontSize = 14;
+        }
+
+        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                Configuration.SCREENLAYOUT_SIZE_XLARGE){
+            if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ScoresActivity SCREENLAYOUT_SIZE_XLARGE...");
+            FontSize = 16;
+        }
+
         TextHeader = (TextView)findViewById(R.id.headertext);
         TextHeader.setTextSize(TypedValue.COMPLEX_UNIT_DIP, FontSize);
         TextHeader.setTypeface(TextHeader.getTypeface(), Typeface.BOLD);
@@ -548,14 +567,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void Info(View arg0) {
         if(ENABLE_LOGS) Log.v("Pete", "Info clicked...");
 
-        //GamePoints = 110;
-        //PushLeaderScore = true;
-        //pushAccomplishments();
-        //DatabaseHandler db = new DatabaseHandler(this);
-        //db.addScore_game(playername,GamePoints++);
-        //SetStringsArrays();
-        //Games.Achievements.unlock(mHelper.getApiClient(), nBackAchievementID[0][0]);
-        //Games.Achievements.increment(mHelper.getApiClient(), nBackAchievementID[0][1],1);
+        Intent intent = new Intent(this, InfoActivity.class);
+        startActivity(intent);
     }
 
     public void Settings(View arg0) {
@@ -574,7 +587,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void onShowAchievementsRequested(View arg0){
-        Toast.makeText(MainActivity.this, "onShowAchievementsRequested clicked!!!!", Toast.LENGTH_SHORT).show();
+        if(ENABLE_LOGS) Log.v("Pete", "onShowAchievementsRequested clicked...");
 
         if (isSignedIn()) {
             startActivityForResult(Games.Achievements.getAchievementsIntent(getApiClient()),RC_UNUSED);
@@ -584,6 +597,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             b_out.setVisibility(View.VISIBLE);
         }
 
+    }
+
+    public void ChartButtonClicked(View view) {
+        if(ENABLE_LOGS) Log.v("Pete", "ChartButtonClicked...");
+
+        Intent intent = new Intent(this, ChartActivity.class);
+        startActivity(intent);
     }
 
     //@Override
@@ -826,7 +846,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         if(myVisualList.size()<nBack)
             return -99;
 
-        returnvalue = (int) myVisualList.get(index);
+        returnvalue = myVisualList.get(index);
 
         if(ENABLE_LOGS) Log.v("Pete", "GetFromList: " + returnvalue);
 
@@ -848,7 +868,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         if(mySoundList.size()<nBack)
             return -99;
 
-        returnvalue = (int) mySoundList.get(index);
+        returnvalue = mySoundList.get(index);
 
         if(ENABLE_LOGS) Log.v("Pete", "GetFromList: " + returnvalue);
 
@@ -906,7 +926,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void PlaySound() {
 
         if(MainActivity.ENABLE_LOGS) Log.v("Pete", "in PlaySound....");
-        int nbr_of_pictures = 0;
+        int nbr_of_pictures;
         //Random random_sound = new Random();
 
         if(Language==1){

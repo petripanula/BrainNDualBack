@@ -4,7 +4,7 @@
         android:key="playername"
         android:summary="Please provide your name"></EditTextPreference>
     <CheckBoxPreference android:title="Enable popup when answer is wrong/correct"
-        android:defaultValue="false"
+        android:defaultValue="true"
         android:summary="This option if selected will show popup if answer is wrong, correct or missed"
         android:key="popup" />
     <CheckBoxPreference android:title="Enable click sounds"

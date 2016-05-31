@@ -278,6 +278,24 @@
             android:src="@drawable/signin"
             />
 
+        <ImageButton
+            android:id="@+id/chart"
+            android:layout_toLeftOf="@+id/signin"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:layout_gravity="bottom"
+            android:background="@drawable/button_memory_page"
+            android:paddingBottom="5dip"
+            android:paddingTop="5dip"
+            android:layout_marginBottom="5dip"
+            android:layout_marginLeft="5dip"
+            android:layout_marginRight="5dip"
+            android:onClick="ChartButtonClicked"
+            android:src="@drawable/chart"
+            />
+
     </LinearLayout>
     </HorizontalScrollView>
 
