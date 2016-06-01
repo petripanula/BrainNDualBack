@@ -1,7 +1,9 @@
 package com.braindualxback;
 
 import android.app.ActionBar;
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
@@ -33,6 +35,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import static java.lang.Math.sqrt;
+
+import com.braindualxback.util.IabBroadcastReceiver;
+import com.braindualxback.util.IabHelper;
+import com.braindualxback.util.IabHelper.IabAsyncInProgressException;
+import com.braindualxback.util.IabResult;
+import com.braindualxback.util.Inventory;
+import com.braindualxback.util.Purchase;
+
+
+
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
@@ -46,7 +58,7 @@ import java.util.List;
 import java.util.Random;
 
 
-public class MainActivity extends BaseGameActivity implements NumberPicker.OnValueChangeListener,RateMeMaybe.OnRMMUserChoiceListener {
+public class MainActivity extends BaseGameActivity implements NumberPicker.OnValueChangeListener,RateMeMaybe.OnRMMUserChoiceListener,IabBroadcastReceiver.IabBroadcastListener {
 
     //TODO for release builds set to ENABLE_LOGS = false
     public static final boolean ENABLE_LOGS = true;
@@ -70,6 +82,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     int Language;
     int Soundtheme;
+
+    int testint;
 
     String[][][] nBackAchievementID = new String[nBacks][Areas][Levels];
     public static boolean[][][] mnBackAchievement = new boolean[nBacks][Areas][Levels];
@@ -146,6 +160,52 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     Random random = new Random();
 
+    boolean RegisteredInAppServices = false;
+    // Does the user have an active subscription to the infinite gas plan?
+    boolean mSubscribedToInfiniteGas = false;
+
+    // Will the subscription auto-renew?
+    boolean mAutoRenewEnabled = false;
+
+    // Does the user have the premium upgrade?
+    boolean mIsPremium = false;
+
+    // Does the user have an active subscription to the infinite laugh?
+    public static boolean mSubscribedToInfiniteLaugh = false;
+
+    // SKUs for our products: the premium upgrade (non-consumable) and gas (consumable)
+    static final String SKU_PREMIUM = "premium";
+    static final String SKU_GAS = "gas";
+
+    // Tracks the currently owned infinite gas SKU, and the options in the Manage dialog
+    String mInfiniteGasSku = "";
+    String mFirstChoiceSku = "";
+    String mSecondChoiceSku = "";
+
+    //TODO make sure to use infinite_laughs for release
+    // SKU for our subscription (infinite gas)
+    static final String SKU_INFINITE_LAUGH = "infinite_laughs";
+    static final String SKU_INFINITE_GAS_MONTHLY = "infinite_gas_monthly";
+    static final String SKU_INFINITE_GAS_YEARLY = "infinite_gas_yearly";
+
+    //static final String SKU_INFINITE_LAUGH = "android.test.purchased";
+
+    // (arbitrary) request code for the purchase flow
+    static final int RC_REQUEST = 2;
+
+    // How many units (1/4 tank is our unit) fill in the tank.
+    static final int TANK_MAX = 4;
+
+    // Current amount of gas in tank, in units
+    int mTank;
+
+    // The helper object
+    IabHelper mIabHelper;
+    //IabHelper mHelper;
+    //private GoogleApiClient mGoogleApiClient;
+    // Provides purchase notification while this app is running
+    IabBroadcastReceiver mBroadcastReceiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -174,8 +234,74 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         ReadPreferences();
         NbrOfPictures_old = NbrOfPictures;
 
-        saveLocal();
         loadLocal();
+        //saveLocal();
+
+        if(ENABLE_LOGS) Log.d(TAG, "testint: " + testint);
+
+        if(testint==666){
+            if(ENABLE_LOGS) Log.d(TAG, "App is purchased!!!");
+            mSubscribedToInfiniteLaugh=true;
+        }
+
+        //String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0H8ToRVuOEnB6S02/ODLGP85IR+V9M6lH7WysSWbl64gPE32/OxtiNMyeMrppabt9Ywp4R0O620CJVzXowRc/WXzKbC8B5PwzRexqjitGir2dlHYQIWxWKzQXfuh4mCBciLiiAis8e+6Pxt/0hEKqv1J3yKfidc79Wc5z8FSgPKCD62S7MQB5rly3dMJEUJNqRcMrmdiPjuOPnyhMC7zcFHyrve/UV2UFDR2UEs8yObiizIgW+cjcWzi45V2iMu8TGa54goqaeKRF3ZFz5mRIdjoTBllC+B5dMq8wncqopHSYB3bP9GgG2GmtjlbAc67igm/kwQBvvNW4bL6/RluLQIDAQAB";
+        String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhkYbOQaFqAp1n1IAvxLeYGepgh1NDM6ZmjlMPFbNsF+lBvzFx9gqfCbtu29QWyqalbS++WzixPLwMZiLDRhF+u/QmbCi1en9NpDQNw1NEbvpdNBeXeuHaWNxqCdAJ8fKOaukPQCM/5Jt6c/KzGFdal2DOyxkud6DhMeVTzTQP5wUJJo7oVylymQlboWVjl6AxL4j3+bAJMeTr4j6Rh3Owtb5J1eowJM95X4jIf7eToxE793FDcN2B03kK15ZEzrt7TM/VVDwhm9wygRE4vQa0+WChRogNjtEbrsgaknfiBQ71RQocae9LssnsEye7tHiJhBmO0LcM9TicdaMVJpTVQIDAQAB";
+        // Some sanity checks to see if the developer (that's you!) really followed the
+        // instructions to run this sample (don't put these checks on your app!)
+        if (base64EncodedPublicKey.contains("CONSTRUCT_YOUR")) {
+            throw new RuntimeException("Please put your app's public key in MainActivity.java. See README.");
+        }
+        if (getPackageName().startsWith("com.example")) {
+            throw new RuntimeException("Please change the sample's package name! See README.");
+        }
+
+        // Create the helper, passing it our context and the public key to verify signatures with
+        if(ENABLE_LOGS) Log.d(TAG, "Creating IAB helper.");
+        mIabHelper = new IabHelper(this, base64EncodedPublicKey);
+
+        // enable debug logging (for a production application, you should set this to false).
+        mIabHelper.enableDebugLogging(true);
+
+        // Start setup. This is asynchronous and the specified listener
+        // will be called once setup completes.
+        if(ENABLE_LOGS) Log.d(TAG, "Starting setup.");
+        Log.d(TAG, "Starting setup.");
+
+        mIabHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
+            public void onIabSetupFinished(IabResult result) {
+                Log.d(TAG, "Setup finished.");
+
+                if (!result.isSuccess()) {
+                    // Oh noes, there was a problem.
+                    complain("Problem setting up in-app billing: " + result);
+                    return;
+                }
+
+                // Have we been disposed of in the meantime? If so, quit.
+                if (mIabHelper == null) return;
+
+                RegisteredInAppServices = true;
+
+                // Important: Dynamically register for broadcast messages about updated purchases.
+                // We register the receiver here instead of as a <receiver> in the Manifest
+                // because we always call getPurchases() at startup, so therefore we can ignore
+                // any broadcasts sent while the app isn't running.
+                // Note: registering this listener in an Activity is a bad idea, but is done here
+                // because this is a SAMPLE. Regardless, the receiver must be registered after
+                // IabHelper is setup, but before first call to getPurchases().
+                mBroadcastReceiver = new IabBroadcastReceiver(MainActivity.this);
+                IntentFilter broadcastFilter = new IntentFilter(IabBroadcastReceiver.ACTION);
+                registerReceiver(mBroadcastReceiver, broadcastFilter);
+
+                // IAB is fully set up. Now, let's get an inventory of stuff we own.
+                Log.d(TAG, "Setup successful. Querying inventory.");
+                try {
+                    mIabHelper.queryInventoryAsync(mGotInventoryListener);
+                } catch (IabHelper.IabAsyncInProgressException e) {
+                    complain("Error querying inventory. Another async operation in progress.");
+                }
+            }
+        });
 
         mTracker = this.getDefaultTracker();
         mTracker.setScreenName("MainActivity");
@@ -234,6 +360,24 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         });
         */
+
+        boolean ReteThis = true;
+
+        if (ReteThis) {
+            if (ENABLE_LOGS) Log.v("Pete", "testing rate my app.....");
+            //RateMeMaybe.resetData(this);
+            RateMeMaybe rmm = new RateMeMaybe(this);
+            rmm.setPromptMinimums(10, 2, 5, 2);
+            //rmm.setPromptMinimums(0, 0, 0, 0);
+            rmm.setRunWithoutPlayStore(true);
+            rmm.setAdditionalListener(this);
+            rmm.setDialogMessage("You seem to like this app, "
+                    + "since you have already used it %totalLaunchCount% times! "
+                    + "It would be great if you took a moment to rate it.");
+            rmm.setDialogTitle("Rate this app");
+            rmm.setPositiveBtn("Yes!");
+            rmm.run();
+        }
     }
 
     /*
@@ -256,6 +400,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
 
         return super.onOptionsItemSelected(item);
+    }
+
+    // Enables or disables the "please wait" screen.
+    void setWaitScreen(boolean set) {
+        if(ENABLE_LOGS) Log.d(TAG, "in setWaitScreen");
+        findViewById(R.id.memory_activity).setVisibility(set ? View.GONE : View.VISIBLE);
+        findViewById(R.id.screen_wait).setVisibility(set ? View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -289,6 +440,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         ReadPreferences();
         SetInitUI();
         InitAll();
+        setWaitScreen(false);
 
         GamePoints = 0;
 
@@ -567,14 +719,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void Info(View arg0) {
         if(ENABLE_LOGS) Log.v("Pete", "Info clicked...");
 
-        DatabaseHandler db = new DatabaseHandler(this);
+        //SetAchievement(nBack, areasizeInt, _50PERCENT);
+        //DatabaseHandler db = new DatabaseHandler(this);
+        //int ran = random.nextInt(35);
+        //db.addScore_game(playername,ran);
 
-        int ran = random.nextInt(35);
-
-        db.addScore_game(playername,ran);
-
-        //Intent intent = new Intent(this, InfoActivity.class);
-        //startActivity(intent);
+        Intent intent = new Intent(this, InfoActivity.class);
+        startActivity(intent);
     }
 
     public void Settings(View arg0) {
@@ -1296,7 +1447,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         preferences = new SecurePreferences(this, "my-preferences", "SometopSecretKey1235", true);
 
-        int testint = 668;
         preferences.put("testint", String.valueOf(testint));
     }
 
@@ -1306,7 +1456,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         //Init
         preferences = new SecurePreferences(this, "my-preferences", "SometopSecretKey1235", true);
 
-        int testint = Integer.parseInt(preferences.getIntString("testint"));
+        testint = Integer.parseInt(preferences.getIntString("testint"));
         if (ENABLE_LOGS) Log.v("Pete", "AccomplishmentsOutbox loadLocal - testint: " + testint);
     }
 
@@ -1327,9 +1477,11 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         if (requestCode == 5001
                 && resultCode == GamesActivityResultCodes.RESULT_RECONNECT_REQUIRED) {
                  if(ENABLE_LOGS) Log.v("Pete","Disconnection from Play Services called from activity with code: " + requestCode);
-                 mHelper.disconnect();
+            mHelper.getApiClient().disconnect();
         } else {
+            //TODO
             mHelper.onActivityResult(requestCode, resultCode, intent);
+
         }
     }
 
@@ -1369,26 +1521,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         //Games.Achievements.unlock(mHelper.getApiClient(), nBackAchievementID[0][0]);
     }
 
-    /*
-    class myPicMemoryAchievementResultCallback implements ResultCallback<Achievements.UpdateAchievementResult> {
-
-        @Override
-        public void onResult(Achievements.UpdateAchievementResult res) {
-            if (res.getStatus().getStatusCode() == 0) {
-                if(ENABLE_LOGS) Log.v("Pete", "PicMemoryAchievement delivered to server!!!!");
-
-                mnBackAchievement[nBackAchievementAck_i][nBackAchievementAck_j] = false;
-
-                //This is used for prevent future push for this.....
-                nBackAchievementOnServer[nBackAchievementAck_i][nBackAchievementAck_j] = true;
-
-                nBackAchievementSent = false;
-                nBackAchievementAck_i = -1;
-                nBackAchievementAck_j = -1;
-            }
-        }
-    }
-    */
     public void SetStringsArrays(){
         nBackAchievementID[0][0][0] = getString(R.string.achievement_nback_1_area_2x2_result_50);
         nBackAchievementID[0][0][1] = getString(R.string.achievement_nback_1_area_2x2_result_75);
@@ -1499,5 +1631,380 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         }
 
     }
+
+
+    // Listener that's called when we finish querying the items and subscriptions we own
+    IabHelper.QueryInventoryFinishedListener mGotInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
+        public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
+            Log.d(TAG, "Query inventory finished.");
+
+            // Have we been disposed of in the meantime? If so, quit.
+            if (mIabHelper == null) return;
+
+            // Is it a failure?
+            if (result.isFailure()) {
+                complain("Failed to query inventory: " + result);
+                return;
+            }
+
+            Log.d(TAG, "Query inventory was successful.");
+
+            /*
+             * Check for items we own. Notice that for each purchase, we check
+             * the developer payload to see if it's correct! See
+             * verifyDeveloperPayload().
+             */
+
+            // Do we have the premium upgrade?
+            Purchase premiumPurchase = inventory.getPurchase(SKU_PREMIUM);
+            mIsPremium = (premiumPurchase != null && verifyDeveloperPayload(premiumPurchase));
+            Log.d(TAG, "User is " + (mIsPremium ? "PREMIUM" : "NOT PREMIUM"));
+
+            if(mIsPremium){
+                Log.d(TAG, "Adding 666 to testint...");
+                testint = 666;
+                saveLocal();
+            }
+
+            // First find out which subscription is auto renewing
+            Purchase gasMonthly = inventory.getPurchase(SKU_INFINITE_GAS_MONTHLY);
+            Purchase gasYearly = inventory.getPurchase(SKU_INFINITE_GAS_YEARLY);
+            if (gasMonthly != null && gasMonthly.isAutoRenewing()) {
+                mInfiniteGasSku = SKU_INFINITE_GAS_MONTHLY;
+                mAutoRenewEnabled = true;
+            } else if (gasYearly != null && gasYearly.isAutoRenewing()) {
+                mInfiniteGasSku = SKU_INFINITE_GAS_YEARLY;
+                mAutoRenewEnabled = true;
+            } else {
+                mInfiniteGasSku = "";
+                mAutoRenewEnabled = false;
+            }
+
+            // The user is subscribed if either subscription exists, even if neither is auto
+            // renewing
+            mSubscribedToInfiniteGas = (gasMonthly != null && verifyDeveloperPayload(gasMonthly))
+                    || (gasYearly != null && verifyDeveloperPayload(gasYearly));
+            Log.d(TAG, "User " + (mSubscribedToInfiniteGas ? "HAS" : "DOES NOT HAVE")
+                    + " infinite gas subscription.");
+            if (mSubscribedToInfiniteGas) mTank = TANK_MAX;
+
+            // Check for gas delivery -- if we own gas, we should fill up the tank immediately
+            Purchase gasPurchase = inventory.getPurchase(SKU_GAS);
+            if (gasPurchase != null && verifyDeveloperPayload(gasPurchase)) {
+                Log.d(TAG, "We have gas. Consuming it.");
+                try {
+                    mIabHelper.consumeAsync(inventory.getPurchase(SKU_GAS), mConsumeFinishedListener);
+                } catch (IabAsyncInProgressException e) {
+                    complain("Error consuming gas. Another async operation in progress.");
+                }
+                return;
+            }
+
+            //updateUi();
+            setWaitScreen(false);
+            Log.d(TAG, "Initial inventory query finished; enabling main UI.");
+        }
+    };
+
+    @Override
+    public void receivedBroadcast() {
+        // Received a broadcast notification that the inventory of items has changed
+        Log.d(TAG, "Received broadcast notification. Querying inventory.");
+        try {
+            mIabHelper.queryInventoryAsync(mGotInventoryListener);
+        } catch (IabAsyncInProgressException e) {
+            complain("Error querying inventory. Another async operation in progress.");
+        }
+    }
+
+    // User clicked the "Buy Gas" button
+    public void onBuyGasButtonClicked(View arg0) {
+        Log.d(TAG, "Buy gas button clicked.");
+
+        if (mSubscribedToInfiniteGas) {
+            complain("No need! You're subscribed to infinite gas. Isn't that awesome?");
+            return;
+        }
+
+        if (mTank >= TANK_MAX) {
+            complain("Your tank is full. Drive around a bit!");
+            return;
+        }
+
+        // launch the gas purchase UI flow.
+        // We will be notified of completion via mPurchaseFinishedListener
+        setWaitScreen(true);
+        Log.d(TAG, "Launching purchase flow for gas.");
+
+        /* TODO: for security, generate your payload here for verification. See the comments on
+         *        verifyDeveloperPayload() for more info. Since this is a SAMPLE, we just use
+         *        an empty string, but on a production app you should carefully generate this. */
+        String payload = "";
+
+        try {
+            mIabHelper.launchPurchaseFlow(this, SKU_GAS, RC_REQUEST,
+                    mPurchaseFinishedListener, payload);
+        } catch (IabAsyncInProgressException e) {
+            complain("Error launching purchase flow. Another async operation in progress.");
+            setWaitScreen(false);
+        }
+    }
+
+    // User clicked the "Upgrade to Premium" button.
+    public void onUpgradeAppButtonClicked(View arg0) {
+        Log.d(TAG, "Upgrade button clicked; launching purchase flow for upgrade.");
+        setWaitScreen(true);
+
+        /* TODO: for security, generate your payload here for verification. See the comments on
+         *        verifyDeveloperPayload() for more info. Since this is a SAMPLE, we just use
+         *        an empty string, but on a production app you should carefully generate this. */
+        String payload = "";
+
+        try {
+            mIabHelper.launchPurchaseFlow(this, SKU_PREMIUM, RC_REQUEST,
+                    mPurchaseFinishedListener, payload);
+        } catch (IabAsyncInProgressException e) {
+            complain("Error launching purchase flow. Another async operation in progress.");
+            setWaitScreen(false);
+        }
+    }
+
+    // "Subscribe to infinite gas" button clicked. Explain to user, then start purchase
+    // flow for subscription.
+    public void onInfiniteGasButtonClicked(View arg0) {
+        if (!mIabHelper.subscriptionsSupported()) {
+            complain("Subscriptions not supported on your device yet. Sorry!");
+            return;
+        }
+
+        CharSequence[] options;
+        if (!mSubscribedToInfiniteGas || !mAutoRenewEnabled) {
+            // Both subscription options should be available
+            options = new CharSequence[2];
+            options[0] = getString(R.string.subscription_period_monthly);
+            options[1] = getString(R.string.subscription_period_yearly);
+            mFirstChoiceSku = SKU_INFINITE_GAS_MONTHLY;
+            mSecondChoiceSku = SKU_INFINITE_GAS_YEARLY;
+        } else {
+            // This is the subscription upgrade/downgrade path, so only one option is valid
+            options = new CharSequence[1];
+            if (mInfiniteGasSku.equals(SKU_INFINITE_GAS_MONTHLY)) {
+                // Give the option to upgrade to yearly
+                options[0] = getString(R.string.subscription_period_yearly);
+                mFirstChoiceSku = SKU_INFINITE_GAS_YEARLY;
+            } else {
+                // Give the option to downgrade to monthly
+                options[0] = getString(R.string.subscription_period_monthly);
+                mFirstChoiceSku = SKU_INFINITE_GAS_MONTHLY;
+            }
+            mSecondChoiceSku = "";
+        }
+
+        int titleResId;
+        if (!mSubscribedToInfiniteGas) {
+            titleResId = R.string.subscription_period_prompt;
+        } else if (!mAutoRenewEnabled) {
+            titleResId = R.string.subscription_resignup_prompt;
+        } else {
+            titleResId = R.string.subscription_update_prompt;
+        }
+
+        /*
+        Builder builder = new Builder(this);
+        builder.setTitle(titleResId)
+                .setSingleChoiceItems(options, 0 , this)
+                .setPositiveButton(R.string.subscription_prompt_continue, this)
+                .setNegativeButton(R.string.subscription_prompt_cancel, this);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        */
+    }
+
+    /*
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(TAG, "onActivityResult(" + requestCode + "," + resultCode + "," + data);
+        if (mHelper == null) return;
+
+        // Pass on the activity result to the helper for handling
+        if (!mHelper.handleActivityResult(requestCode, resultCode, data)) {
+            // not handled, so handle it ourselves (here's where you'd
+            // perform any handling of activity results not related to in-app
+            // billing...
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+        else {
+            Log.d(TAG, "onActivityResult handled by IABUtil.");
+        }
+    }
+    */
+
+    /** Verifies the developer payload of a purchase. */
+    boolean verifyDeveloperPayload(Purchase p) {
+        String payload = p.getDeveloperPayload();
+
+        /*
+         * TODO: verify that the developer payload of the purchase is correct. It will be
+         * the same one that you sent when initiating the purchase.
+         *
+         * WARNING: Locally generating a random string when starting a purchase and
+         * verifying it here might seem like a good approach, but this will fail in the
+         * case where the user purchases an item on one device and then uses your app on
+         * a different device, because on the other device you will not have access to the
+         * random string you originally generated.
+         *
+         * So a good developer payload has these characteristics:
+         *
+         * 1. If two different users purchase an item, the payload is different between them,
+         *    so that one user's purchase can't be replayed to another user.
+         *
+         * 2. The payload must be such that you can verify it even when the app wasn't the
+         *    one who initiated the purchase flow (so that items purchased by the user on
+         *    one device work on other devices owned by the user).
+         *
+         * Using your own server to store and verify developer payloads across app
+         * installations is recommended.
+         */
+
+        return true;
+    }
+
+    // Callback for when a purchase is finished
+    IabHelper.OnIabPurchaseFinishedListener mPurchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
+        public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
+            Log.d(TAG, "Purchase finished: " + result + ", purchase: " + purchase);
+
+            // if we were disposed of in the meantime, quit.
+            if (mIabHelper == null) return;
+
+            if (result.isFailure()) {
+                complain("Error purchasing: " + result);
+                setWaitScreen(false);
+                return;
+            }
+            if (!verifyDeveloperPayload(purchase)) {
+                complain("Error purchasing. Authenticity verification failed.");
+                setWaitScreen(false);
+                return;
+            }
+
+            Log.d(TAG, "Purchase successful.");
+
+            if (purchase.getSku().equals(SKU_GAS)) {
+                // bought 1/4 tank of gas. So consume it.
+                Log.d(TAG, "Purchase is gas. Starting gas consumption.");
+                try {
+                    mIabHelper.consumeAsync(purchase, mConsumeFinishedListener);
+                } catch (IabAsyncInProgressException e) {
+                    complain("Error consuming gas. Another async operation in progress.");
+                    setWaitScreen(false);
+                    return;
+                }
+            }
+            else if (purchase.getSku().equals(SKU_PREMIUM)) {
+                // bought the premium upgrade!
+                Log.d(TAG, "Purchase is premium upgrade. Congratulating user.");
+                alert("Thank you for upgrading to premium!");
+                mIsPremium = true;
+                //updateUi();
+                setWaitScreen(false);
+
+                if(mIsPremium){
+                    Log.d(TAG, "OnIabPurchaseFinishedListener - Adding 666 to testint...");
+                    testint = 666;
+                    saveLocal();
+                }
+            }
+            else if (purchase.getSku().equals(SKU_INFINITE_GAS_MONTHLY)
+                    || purchase.getSku().equals(SKU_INFINITE_GAS_YEARLY)) {
+                // bought the infinite gas subscription
+                Log.d(TAG, "Infinite gas subscription purchased.");
+                alert("Thank you for subscribing to infinite gas!");
+                mSubscribedToInfiniteGas = true;
+                mAutoRenewEnabled = purchase.isAutoRenewing();
+                mInfiniteGasSku = purchase.getSku();
+                mTank = TANK_MAX;
+                //updateUi();
+                setWaitScreen(false);
+            }
+        }
+    };
+
+    // Called when consumption is complete
+    IabHelper.OnConsumeFinishedListener mConsumeFinishedListener = new IabHelper.OnConsumeFinishedListener() {
+        public void onConsumeFinished(Purchase purchase, IabResult result) {
+            Log.d(TAG, "Consumption finished. Purchase: " + purchase + ", result: " + result);
+
+            // if we were disposed of in the meantime, quit.
+            if (mIabHelper == null) return;
+
+            // We know this is the "gas" sku because it's the only one we consume,
+            // so we don't check which sku was consumed. If you have more than one
+            // sku, you probably should check...
+            if (result.isSuccess()) {
+                // successfully consumed, so we apply the effects of the item in our
+                // game world's logic, which in our case means filling the gas tank a bit
+                Log.d(TAG, "Consumption successful. Provisioning.");
+                mTank = mTank == TANK_MAX ? TANK_MAX : mTank + 1;
+
+                //TODO
+                //saveData();
+                alert("You filled 1/4 tank. Your tank is now " + String.valueOf(mTank) + "/4 full!");
+            }
+            else {
+                complain("Error while consuming: " + result);
+            }
+            //updateUi();
+            setWaitScreen(false);
+            Log.d(TAG, "End consumption flow.");
+        }
+    };
+
+    // Drive button clicked. Burn gas!
+    public void onDriveButtonClicked(View arg0) {
+        Log.d(TAG, "Drive button clicked.");
+        if (!mSubscribedToInfiniteGas && mTank <= 0) alert("Oh, no! You are out of gas! Try buying some!");
+        else {
+            if (!mSubscribedToInfiniteGas) --mTank;
+            //TODO
+            //saveData();
+            alert("Vroooom, you drove a few miles.");
+            //updateUi();
+            Log.d(TAG, "Vrooom. Tank is now " + mTank);
+        }
+    }
+
+    // We're being destroyed. It's important to dispose of the helper here!
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        // very important:
+        if (mBroadcastReceiver != null) {
+            unregisterReceiver(mBroadcastReceiver);
+        }
+
+        // very important:
+        Log.d(TAG, "Destroying helper.");
+        if (mIabHelper != null && RegisteredInAppServices) {
+            mIabHelper.disposeWhenFinished();
+            mIabHelper = null;
+        }
+    }
+
+   void complain(String message) {
+        Log.e(TAG, "**** BrainDualXBack Error: " + message);
+        alert("Error: " + message);
+    }
+
+    void alert(String message) {
+        AlertDialog.Builder bld = new AlertDialog.Builder(this);
+        bld.setMessage(message);
+        bld.setNeutralButton("OK", null);
+        Log.d(TAG, "Showing alert dialog: " + message);
+        bld.create().show();
+    }
+
+
 
 }

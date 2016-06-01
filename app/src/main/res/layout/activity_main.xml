@@ -6,6 +6,9 @@
     android:background="@drawable/brain"
     android:orientation="vertical" >
 
+    <ImageView android:src="@drawable/wait" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:id="@+id/screen_wait" android:layout_gravity="center" android:visibility="gone" />
+
     <TextView
         android:id="@+id/headertext"
         android:layout_width="fill_parent"
@@ -279,8 +282,26 @@
             />
 
         <ImageButton
-            android:id="@+id/chart_button"
-            android:layout_toLeftOf="@+id/signin"
+        android:id="@+id/chart_button"
+        android:layout_toLeftOf="@+id/signin"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"
+        android:layout_gravity="bottom"
+        android:background="@drawable/button_memory_page"
+        android:paddingBottom="5dip"
+        android:paddingTop="5dip"
+        android:layout_marginBottom="5dip"
+        android:layout_marginLeft="5dip"
+        android:layout_marginRight="5dip"
+        android:onClick="ChartButtonClicked"
+        android:src="@drawable/chart"
+        />
+
+        <ImageButton
+            android:id="@+id/buy"
+            android:layout_toLeftOf="@+id/chart_button"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
             android:scaleType="fitCenter"
@@ -292,8 +313,8 @@
             android:layout_marginBottom="5dip"
             android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
-            android:onClick="ChartButtonClicked"
-            android:src="@drawable/chart"
+            android:onClick="onUpgradeAppButtonClicked"
+            android:src="@drawable/buy"
             />
 
     </LinearLayout>

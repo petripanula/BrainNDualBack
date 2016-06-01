@@ -2,15 +2,19 @@ package com.braindualxback;
 
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
-import android.support.v7.app.ActionBar;
+import android.graphics.Paint;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
@@ -51,84 +55,113 @@ public class ChartActivity extends AppCompatActivity {
         setContentView(R.layout.activity_chart);
 
         DatabaseHandler db = new DatabaseHandler(this);
-        Object[] arrayObjects_game = db.getAll_game();
+        Object[] arrayObjects_game = db.getAll_game_for_chart();
 
-        Hiscores_game = new String[db.getDBsize_game()];
-        Players_game = new String[db.getDBsize_game()];
-        Dates_game = new long[db.getDBsize_game()];
+        if(db.getDBsize_game()<3){
+            LinearLayout ll = (LinearLayout) findViewById(R.id.chart);
+            ll.setGravity(Gravity.CENTER);
 
-        Players_game = (String[])arrayObjects_game[0];
-        Dates_game = (long[])arrayObjects_game[1];
-        Hiscores_game = (String[])arrayObjects_game[2];
+            String HTMLsourceString;
+            int TextBackRoundColour = 0xaa000000;
+            int FontSize = 20;
 
-        //XYSeries series = new XYSeries("Testi graafi");
-        XYSeries series = new XYSeries("");
-       XYMultipleSeriesDataset mseries = new XYMultipleSeriesDataset();
+            final TextView ManualModeHeader = new TextView(this);
+            HTMLsourceString = "<font color=#00FF00><b> Nothing to show here yet. Do some training in PlayMode! </b></font>";
+            ManualModeHeader.setText(Html.fromHtml(HTMLsourceString));
+            ManualModeHeader.setGravity(Gravity.CENTER);
+            ManualModeHeader.setTextColor(Color.WHITE);
+            ManualModeHeader.setBackgroundColor(TextBackRoundColour);
+            ManualModeHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+            // add the textview to the linearlayout
+            ll.addView(ManualModeHeader);
+        }else {
+            Hiscores_game = new String[db.getDBsize_game()];
+            Players_game = new String[db.getDBsize_game()];
+            Dates_game = new long[db.getDBsize_game()];
 
+            Players_game = (String[]) arrayObjects_game[0];
+            Dates_game = (long[]) arrayObjects_game[1];
+            Hiscores_game = (String[]) arrayObjects_game[2];
 
+            int biggest_value = 0;
 
+            for (String aHiscores_game : Hiscores_game) {
+                if (Integer.parseInt(aHiscores_game) > biggest_value) {
+                    biggest_value = Integer.parseInt(aHiscores_game);
+                }
+            }
 
-        // Now we create the renderer
-        XYSeriesRenderer renderer = new XYSeriesRenderer();
-        renderer.setLineWidth(2);
-        renderer.setColor(Color.RED);
-        // Include low and max value
-        renderer.setDisplayBoundingPoints(true);
-        // we add point markers
-        renderer.setPointStyle(PointStyle.CIRCLE);
-        renderer.setPointStrokeWidth(3);
+            //XYSeries series = new XYSeries("Testi graafi");
+            XYSeries series = new XYSeries("");
+            XYMultipleSeriesDataset mseries = new XYMultipleSeriesDataset();
 
-        XYMultipleSeriesRenderer mRenderer = new XYMultipleSeriesRenderer();
-        //XYMultipleSeriesRenderer mRenderer = new XYSeriesRenderer();
+            // Now we create the renderer
+            XYSeriesRenderer renderer = new XYSeriesRenderer();
+            renderer.setLineWidth(2);
+            renderer.setColor(Color.RED);
+            // Include low and max value
+            renderer.setDisplayBoundingPoints(true);
+            // we add point markers
+            renderer.setPointStyle(PointStyle.CIRCLE);
+            renderer.setPointStrokeWidth(3);
 
-        mRenderer.addSeriesRenderer(renderer);
+            XYMultipleSeriesRenderer mRenderer = new XYMultipleSeriesRenderer();
+            //XYSeriesRenderer mRenderer = new XYSeriesRenderer();
 
-        // We want to avoid black border
-        mRenderer.setMarginsColor(Color.argb(0x00, 0xff, 0x00, 0x00)); // transparent margins
-        // Disable Pan on two axis
-        mRenderer.setPanEnabled(true, false);
-        mRenderer.setPanLimits(new double[]{0,100,0,0});
+            mRenderer.addSeriesRenderer(renderer);
 
-        mRenderer.setYAxisMax(35);
-        mRenderer.setYAxisMin(0);
-        mRenderer.setShowGrid(false); // we show the grid
-        mRenderer.setBarSpacing(1);
-        mRenderer.setInScroll(true);
-        //mRenderer.setAxisTitleTextSize(50);
-        mRenderer.setZoomEnabled(true,false);
-        mRenderer.setChartTitle("PlayMode progress (X-Date,Y-Points)");
-        mRenderer.setChartTitleTextSize(60);
+            // We want to avoid black border
+            mRenderer.setMarginsColor(Color.argb(0x00, 0xff, 0x00, 0x00)); // transparent margins
+            // Disable Pan on two axis
+            mRenderer.setPanEnabled(true, false);
+            mRenderer.setPanLimits(new double[]{0, Hiscores_game.length, 0, 0});
 
-        mRenderer.setAxisTitleTextSize(60);
-        //mRenderer.setXTitle("Date");
-        //mRenderer.setYTitle("Points");
+            mRenderer.setYAxisMax(biggest_value + 10);
+            mRenderer.setYAxisMin(0);
+            mRenderer.setShowGrid(false); // we show the grid
+            mRenderer.setBarSpacing(1);
+            mRenderer.setXAxisMin(-0.5);
+            mRenderer.setInScroll(true);
+            //mRenderer.setAxisTitleTextSize(50);
+            mRenderer.setZoomEnabled(true, false);
+            mRenderer.setChartTitle("PlayMode progress (X-Date,Y-Points)");
+            mRenderer.setChartTitleTextSize(60);
 
-        mRenderer.setLabelsTextSize(60);
+            mRenderer.setAxisTitleTextSize(60);
+            //mRenderer.setXTitle("Date");
+            //mRenderer.setYTitle("Points");
 
-        mRenderer.setXLabelsAngle(90);
+            mRenderer.setLabelsTextSize(60);
 
+            mRenderer.setXLabelsAngle(90);
 
-        //SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM");
+            //SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM");
 
-        int hour = 0;
-        for(int j = 0; j < Hiscores_game.length; j++){
-            if(MainActivity.ENABLE_LOGS) Log.v("Pete", "add - Hiscores_game: " + Integer.parseInt(Hiscores_game[j]));
-            series.add(hour++, Integer.parseInt(Hiscores_game[j]));
-            Date resultdate = new Date(Dates_game[j]);
-            mRenderer.addXTextLabel(j, sdf.format(resultdate).toString());
-            mRenderer.setXLabels(0);
+            int hour = 0;
+            for (int j = 0; j < Hiscores_game.length; j++) {
+                if (MainActivity.ENABLE_LOGS)
+                    Log.v("Pete", "add - Hiscores_game: " + Integer.parseInt(Hiscores_game[j]));
+                series.add(hour++, Integer.parseInt(Hiscores_game[j]));
+                series.addAnnotation(Hiscores_game[j], j, Integer.parseInt(Hiscores_game[j]) + 5);
+                renderer.setAnnotationsTextSize(50);
+                renderer.setAnnotationsColor(Color.RED);
+                Date resultdate = new Date(Dates_game[j]);
+                mRenderer.addXTextLabel(j, sdf.format(resultdate));
+                mRenderer.setXLabels(0);
+            }
+
+            mseries.addSeries(series);
+
+            //GraphicalView chartView = ChartFactory.getLineChartView(this, mseries, mRenderer);
+            GraphicalView chartView = ChartFactory.getBarChartView(this, mseries, mRenderer, BarChart.Type.DEFAULT);
+
+            LinearLayout ll = (LinearLayout) findViewById(R.id.chart);
+
+            if (ll != null) {
+                ll.addView(chartView, 0);
+            }
         }
-
-        mseries.addSeries(series);
-
-        //GraphicalView chartView = ChartFactory.getLineChartView(this, mseries, mRenderer);
-        GraphicalView chartView = ChartFactory.getBarChartView(this, mseries, mRenderer, BarChart.Type.DEFAULT);
-
-       LinearLayout ll = (LinearLayout) findViewById(R.id.chart);
-
-        //chartView.setLayoutParams(new ActionBar.LayoutParams(ActionBar.LayoutParams.MATCH_PARENT, ActionBar.LayoutParams.MATCH_PARENT));
-        ll.addView(chartView,0);
 
     }
 

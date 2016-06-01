@@ -258,4 +258,51 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         return arrayObjects;
     }
+
+    public Object[] getAll_game_for_chart() {
+
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "getAll_game()...");
+
+        Object[] arrayObjects = new Object[3];
+        // Select All Query
+        String selectQuery = "SELECT * FROM " + TABLE_SCORE_GAME + " ORDER BY CAST("+ DATE +" AS INTEGER) ASC";
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        // looping through all rows and adding to list
+
+        int i = 0;
+
+        String[] player = new String[cursor.getCount()];
+        long[] date = new long[cursor.getCount()];
+        String[] score = new String[cursor.getCount()];
+
+        while (cursor.moveToNext()) {
+
+            player[i] = cursor.getString(1);
+            date[i] = cursor.getLong(2);
+            score[i] = cursor.getString(3);
+
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getString(1) player: " + cursor.getString(1));
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getLong(2) date: " + cursor.getLong(2));
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getString(3) score: " + cursor.getString(3));
+
+            i++;
+
+        }
+        cursor.close();
+        db.close();
+        /*
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "score: " + Arrays.toString(score));
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "date: " + Arrays.toString(date));
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "player: " + Arrays.toString(player));
+        */
+        arrayObjects [0] = player;
+        arrayObjects [1] = date;
+        arrayObjects [2] = score;
+
+        return arrayObjects;
+    }
+
 }
