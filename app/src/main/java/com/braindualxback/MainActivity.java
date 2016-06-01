@@ -567,8 +567,14 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void Info(View arg0) {
         if(ENABLE_LOGS) Log.v("Pete", "Info clicked...");
 
-        Intent intent = new Intent(this, InfoActivity.class);
-        startActivity(intent);
+        DatabaseHandler db = new DatabaseHandler(this);
+
+        int ran = random.nextInt(35);
+
+        db.addScore_game(playername,ran);
+
+        //Intent intent = new Intent(this, InfoActivity.class);
+        //startActivity(intent);
     }
 
     public void Settings(View arg0) {
