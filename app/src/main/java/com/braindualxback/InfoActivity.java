@@ -1,6 +1,9 @@
 package com.braindualxback;
 
+import android.content.ComponentName;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.support.v7.app.ActionBarActivity;
@@ -17,10 +20,13 @@ import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.google.android.gms.games.Games;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class InfoActivity extends AppCompatActivity {
 
@@ -37,6 +43,24 @@ public class InfoActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         getSupportActionBar().hide();
+
+        int versionCode = 0;
+        String VersioName = "Null";
+        String Package = "Null";
+
+        try {
+            ComponentName comp = new ComponentName(this, AdvertisingIdClient.Info.class);
+            PackageInfo pinfo = getPackageManager().getPackageInfo(comp.getPackageName(), 0);
+
+            versionCode = pinfo.versionCode;
+            VersioName = pinfo.versionName;
+            Package = pinfo.packageName;
+
+            if(MainActivity.ENABLE_LOGS) Log.v("Pete", "versionCode: " + versionCode);
+            if(MainActivity.ENABLE_LOGS) Log.v("Pete", "VersioName: " + VersioName);
+            if(MainActivity.ENABLE_LOGS) Log.v("Pete", "Package: " + Package);
+
+        } catch(android.content.pm.PackageManager.NameNotFoundException e) {}
 
         setContentView(R.layout.activity_info);
 
@@ -435,10 +459,19 @@ public class InfoActivity extends AppCompatActivity {
         SpacesTextView16.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeSpace);
         ll.addView(SpacesTextView16);
 
+        final TextView lastTextRow = new TextView(this);
+        HTMLsourceString = "Package: " + Package + " versioncode: " + versionCode + " versioname: " + VersioName + " Date: " + LastCompilation();
+        lastTextRow.setText(Html.fromHtml(HTMLsourceString));
+        lastTextRow.setGravity(Gravity.CENTER);
+        lastTextRow.setTextColor(Color.BLUE);
+        lastTextRow.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeHeader);
+        ll.addView(lastTextRow);
 
-
-
-
+        final TextView LastSpacesTextView = new TextView(this);
+        LastSpacesTextView.setText("\n\n");
+        LastSpacesTextView.setBackgroundColor(TextBackRoundColour);
+        LastSpacesTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeSpace);
+        ll.addView(LastSpacesTextView);
 
     }
 
@@ -486,5 +519,24 @@ public class InfoActivity extends AppCompatActivity {
     public void onStop() {
         if(MainActivity.ENABLE_LOGS) Log.v("Pete", "InfoActivity onStop...");
         super.onStop();
+    }
+
+    public String LastCompilation() {
+
+        String s = "NA";
+
+        try{
+            ApplicationInfo ai = getPackageManager().getApplicationInfo(getPackageName(), 0);
+            ZipFile zf = new ZipFile(ai.sourceDir);
+            ZipEntry ze = zf.getEntry("classes.dex");
+            long time = ze.getTime();
+            s = SimpleDateFormat.getInstance().format(new java.util.Date(time));
+            zf.close();
+            return s;
+        }catch(Exception e){
+        }
+
+        return s;
+
     }
 }

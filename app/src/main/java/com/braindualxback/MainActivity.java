@@ -859,7 +859,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 //Played level only once...
                 if (increaseNback[nBack] == 1) {
                     if (PlayResult[nBack] == 1) {
-                        findViewById(R.id.undergrid).setVisibility(View.VISIBLE);
+
                     } else {
                         if(ENABLE_LOGS) Log.v("Pete", "Game over.....");
                         //DatabaseHandler db = new DatabaseHandler(this);
@@ -870,7 +870,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 }
                 if (increaseNback[nBack] == 2) {
                     if (PlayResult[nBack] == 2) {
-                        findViewById(R.id.undergrid).setVisibility(View.VISIBLE);
+
                     } else {
                         if(ENABLE_LOGS) Log.v("Pete", "Game over.....");
                         db.addScore_game(playername,GamePoints);
@@ -982,6 +982,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 ShowRedTimer(5000);
                 findViewById(R.id.horizontalview).setVisibility(View.GONE);
                 findViewById(R.id.linearview).setVisibility(View.VISIBLE);
+                findViewById(R.id.undergrid).setVisibility(View.VISIBLE);
 
                 ShowToastnBack();
             }
