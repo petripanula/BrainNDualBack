@@ -41,4 +41,8 @@
         android:defaultValue="1"
         android:entries="@array/listArray4"
         android:entryValues="@array/listValues4" />
+    <CheckBoxPreference android:title="Disable Adds"
+        android:defaultValue="false"
+        android:summary="This option if selected will disable adds"
+        android:key="addson" />
 </PreferenceScreen>

@@ -69,6 +69,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public static final boolean ENABLE2_LOGS = false;
     public static final String TAG = "Pete";
 
+    boolean DisableAdds = false;
+
     public static final int nBacks = 6;
     public static final int Areas = 4;
     public static final int Levels = 3;
@@ -237,38 +239,44 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         //getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
 
-        MobileAds.initialize(getApplicationContext(), "ca-app-pub-3940256099942544~3347511713");
-        AdView mAdView = (AdView) findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
+        ReadPreferences();
 
-        mInterstitialAd = new InterstitialAd(this);
-        mInterstitialAd.setAdUnitId("ca-app-pub-3940256099942544/1033173712");
+        if(!DisableAdds) {
 
-        mInterstitialAd.setAdListener(new AdListener() {
-            @Override
-            public void onAdClosed() {
-                if(ENABLE_LOGS) Log.d(TAG, "onAdClosed....");
-                requestNewInterstitial();
-                //StartNow();
-                ContinuePlayingTimer(1000);;
-            }
-        });
+            MobileAds.initialize(getApplicationContext(), "ca-app-pub-3940256099942544~3347511713");
+            AdView mAdView = (AdView) findViewById(R.id.adView);
+            AdRequest adRequest = new AdRequest.Builder().build();
+            mAdView.loadAd(adRequest);
 
-        requestNewInterstitial();
+            mInterstitialAd = new InterstitialAd(this);
+            mInterstitialAd.setAdUnitId("ca-app-pub-3940256099942544/1033173712");
+
+            mInterstitialAd.setAdListener(new AdListener() {
+                @Override
+                public void onAdClosed() {
+                    if (ENABLE_LOGS) Log.d(TAG, "onAdClosed....");
+                    requestNewInterstitial();
+                    //StartNow();
+                    ContinuePlayingTimer(1000);
+                }
+            });
+
+
+            requestNewInterstitial();
+        }
 
         SetStringsArrays();
-        ReadPreferences();
+
         NbrOfPictures_old = NbrOfPictures;
 
         loadLocal();
-        //saveLocal();
 
         if(ENABLE_LOGS) Log.d(TAG, "testint: " + testint);
 
         if(testint==666){
             if(ENABLE_LOGS) Log.d(TAG, "App is purchased!!!");
             mSubscribedToInfiniteLaugh=true;
+            mIsPremium = true;
         }
 
         //String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0H8ToRVuOEnB6S02/ODLGP85IR+V9M6lH7WysSWbl64gPE32/OxtiNMyeMrppabt9Ywp4R0O620CJVzXowRc/WXzKbC8B5PwzRexqjitGir2dlHYQIWxWKzQXfuh4mCBciLiiAis8e+6Pxt/0hEKqv1J3yKfidc79Wc5z8FSgPKCD62S7MQB5rly3dMJEUJNqRcMrmdiPjuOPnyhMC7zcFHyrve/UV2UFDR2UEs8yObiizIgW+cjcWzi45V2iMu8TGa54goqaeKRF3ZFz5mRIdjoTBllC+B5dMq8wncqopHSYB3bP9GgG2GmtjlbAc67igm/kwQBvvNW4bL6/RluLQIDAQAB";
@@ -445,6 +453,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         findViewById(R.id.memory_activity).setVisibility(set ? View.GONE : View.VISIBLE);
         findViewById(R.id.screen_wait).setVisibility(set ? View.VISIBLE : View.GONE);
     }
+    /*
 
     @Override
     public void onStart() {
@@ -461,6 +470,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         // The rest of your onStop() code.
         //EasyTracker.getInstance(this).activityStop(this);  // Add this method.
     }
+    */
 
     @Override
     public void onPause() {
@@ -474,6 +484,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void onResume() {
         super.onResume();
         if(ENABLE_LOGS) Log.v("Pete", "MainActivity onResume...");
+
         ReadPreferences();
         SetInitUI();
         InitAll();
@@ -512,6 +523,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 overridePendingTransition(0, 0);
             }
         }
+
     }
 
     @Override
@@ -599,15 +611,20 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void Start(View arg0){
         if (ENABLE_LOGS) Log.d("Pete", "Start...");
 
-        if (mInterstitialAd.isLoaded()) {
-            mInterstitialAd.show();
-        } else {
-            if (ENABLE_LOGS) Log.d("Pete", "No Adds Loaded - start game...");
+        if(mInterstitialAd!=null) {
+            if (mInterstitialAd.isLoaded()) {
+                mInterstitialAd.show();
+            } else {
+                if (ENABLE_LOGS) Log.d("Pete", "No Adds Loaded - start game...");
+                StartNow();
+            }
+        }else{
             StartNow();
         }
     }
 
     public void StopAllTimers(){
+        if (ENABLE_LOGS) Log.d("Pete", "StopAllTimers().....");
 
         if(ShowRedTimer!=null)
             ShowRedTimer.cancel();
@@ -1229,6 +1246,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         EnableClickSounds = SP.getBoolean("clicksounds", false);
         String language = SP.getString("language", "1");
         String soundtheme = SP.getString("soundtheme","1");
+        DisableAdds =  SP.getBoolean("addson", false);
 
         Language = Integer.parseInt(language);
         Soundtheme = Integer.parseInt(soundtheme);
@@ -1474,10 +1492,17 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         if(!showpopup)
             return;
 
-        Toast toast= Toast.makeText(getApplicationContext(),
+        final Toast toast= Toast.makeText(getApplicationContext(),
                 mytoast, Toast.LENGTH_SHORT);
         toast.setGravity(Gravity.CENTER_HORIZONTAL, 0, 0);
         toast.show();
+
+        new CountDownTimer(800, 10)
+        {
+            public void onTick(long millisUntilFinished) {toast.show();}
+            public void onFinish() {toast.cancel();}
+        }.start();
+
     }
 
     public void ShowToastnBack(){
@@ -2026,6 +2051,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Log.d(TAG, "onDestroy......");
 
         // very important:
         if (mBroadcastReceiver != null) {
