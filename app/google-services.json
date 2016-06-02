@@ -1,7 +1,9 @@
 {
   "project_info": {
     "project_number": "60837436772",
-    "project_id": "braindualxback"
+    "firebase_url": "https://braindualxback.firebaseio.com",
+    "project_id": "braindualxback",
+    "storage_bucket": "braindualxback.appspot.com"
   },
   "client": [
     {
@@ -27,6 +29,10 @@
             "package_name": "com.braindualxback",
             "certificate_hash": "EEAA325B7E83130DFFACA34E49C5F26E52F3BA37"
           }
+        },
+        {
+          "client_id": "60837436772-7njecs54f3j1gq3l1n4jpeqj7s6h22eg.apps.googleusercontent.com",
+          "client_type": 3
         }
       ],
       "api_key": [
@@ -42,11 +48,16 @@
           }
         },
         "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "60837436772-7njecs54f3j1gq3l1n4jpeqj7s6h22eg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         },
         "ads_service": {
-          "status": 1
+          "status": 2
         }
       }
     }

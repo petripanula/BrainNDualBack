@@ -44,7 +44,11 @@ import com.braindualxback.util.Inventory;
 import com.braindualxback.util.Purchase;
 
 
-
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.AdView;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
@@ -206,6 +210,9 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     // Provides purchase notification while this app is running
     IabBroadcastReceiver mBroadcastReceiver;
 
+    //Ads
+    InterstitialAd mInterstitialAd;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -229,6 +236,26 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         //getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
+
+        MobileAds.initialize(getApplicationContext(), "ca-app-pub-3940256099942544~3347511713");
+        AdView mAdView = (AdView) findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
+
+        mInterstitialAd = new InterstitialAd(this);
+        mInterstitialAd.setAdUnitId("ca-app-pub-3940256099942544/1033173712");
+
+        mInterstitialAd.setAdListener(new AdListener() {
+            @Override
+            public void onAdClosed() {
+                if(ENABLE_LOGS) Log.d(TAG, "onAdClosed....");
+                requestNewInterstitial();
+                //StartNow();
+                ContinuePlayingTimer(1000);;
+            }
+        });
+
+        requestNewInterstitial();
 
         SetStringsArrays();
         ReadPreferences();
@@ -378,6 +405,16 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             rmm.setPositiveBtn("Yes!");
             rmm.run();
         }
+    }
+
+    private void requestNewInterstitial() {
+        if(ENABLE_LOGS) Log.d(TAG, "in requestNewInterstitial()....");
+
+        AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice("SEE_YOUR_LOGCAT_TO_GET_YOUR_DEVICE_ID")
+                .build();
+
+        mInterstitialAd.loadAd(adRequest);
     }
 
     /*
@@ -543,8 +580,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     }
 
-    public void Start(View arg0){
-
+    public void StartNow(){
         ShowRedTimer(5000);
 
         findViewById(R.id.horizontalview).setVisibility(View.GONE);
@@ -554,9 +590,20 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         GamePoints = 0;
 
-        if(!manualmode){
+        if (!manualmode) {
             InitPlayModeParam();
             ShowToastnBack();
+        }
+    }
+
+    public void Start(View arg0){
+        if (ENABLE_LOGS) Log.d("Pete", "Start...");
+
+        if (mInterstitialAd.isLoaded()) {
+            mInterstitialAd.show();
+        } else {
+            if (ENABLE_LOGS) Log.d("Pete", "No Adds Loaded - start game...");
+            StartNow();
         }
     }
 
