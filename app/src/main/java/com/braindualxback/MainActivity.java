@@ -241,6 +241,19 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         ReadPreferences();
 
+        loadLocal();
+
+        if(ENABLE_LOGS) Log.d(TAG, "testint: " + testint);
+
+        if(testint==666){
+            if(ENABLE_LOGS) Log.d(TAG, "App is purchased!!!");
+            mSubscribedToInfiniteLaugh=true;
+            mIsPremium = true;
+            DisableAdds = true;
+        }
+
+        findViewById(R.id.adView).setVisibility(DisableAdds ? View.GONE : View.VISIBLE);
+
         if(!DisableAdds) {
 
             MobileAds.initialize(getApplicationContext(), "ca-app-pub-3940256099942544~3347511713");
@@ -268,16 +281,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         SetStringsArrays();
 
         NbrOfPictures_old = NbrOfPictures;
-
-        loadLocal();
-
-        if(ENABLE_LOGS) Log.d(TAG, "testint: " + testint);
-
-        if(testint==666){
-            if(ENABLE_LOGS) Log.d(TAG, "App is purchased!!!");
-            mSubscribedToInfiniteLaugh=true;
-            mIsPremium = true;
-        }
 
         //String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0H8ToRVuOEnB6S02/ODLGP85IR+V9M6lH7WysSWbl64gPE32/OxtiNMyeMrppabt9Ywp4R0O620CJVzXowRc/WXzKbC8B5PwzRexqjitGir2dlHYQIWxWKzQXfuh4mCBciLiiAis8e+6Pxt/0hEKqv1J3yKfidc79Wc5z8FSgPKCD62S7MQB5rly3dMJEUJNqRcMrmdiPjuOPnyhMC7zcFHyrve/UV2UFDR2UEs8yObiizIgW+cjcWzi45V2iMu8TGa54goqaeKRF3ZFz5mRIdjoTBllC+B5dMq8wncqopHSYB3bP9GgG2GmtjlbAc67igm/kwQBvvNW4bL6/RluLQIDAQAB";
         String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhkYbOQaFqAp1n1IAvxLeYGepgh1NDM6ZmjlMPFbNsF+lBvzFx9gqfCbtu29QWyqalbS++WzixPLwMZiLDRhF+u/QmbCi1en9NpDQNw1NEbvpdNBeXeuHaWNxqCdAJ8fKOaukPQCM/5Jt6c/KzGFdal2DOyxkud6DhMeVTzTQP5wUJJo7oVylymQlboWVjl6AxL4j3+bAJMeTr4j6Rh3Owtb5J1eowJM95X4jIf7eToxE793FDcN2B03kK15ZEzrt7TM/VVDwhm9wygRE4vQa0+WChRogNjtEbrsgaknfiBQ71RQocae9LssnsEye7tHiJhBmO0LcM9TicdaMVJpTVQIDAQAB";
@@ -993,7 +996,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
                 if(ENABLE_LOGS) Log.v("Pete", "random_nbr: " + random_nbr);
 
-                mImageViews[random_nbr].clearColorFilter();
+                if(random_nbr>=0)
+                    mImageViews[random_nbr].clearColorFilter();
 
                 PlaySound();
 
@@ -1017,7 +1021,9 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 ClearRedTimerRunning = false;
 
                 int color = Color.parseColor("#FFFFFF");
-                mImageViews[random_nbr].setColorFilter(color);
+
+                if(random_nbr>=0)
+                    mImageViews[random_nbr].setColorFilter(color);
 
                 ShowRedTimer(2000);
 
