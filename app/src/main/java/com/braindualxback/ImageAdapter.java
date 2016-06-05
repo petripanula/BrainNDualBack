@@ -7,13 +7,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.util.Log;
-import android.util.LruCache;
 import android.widget.BaseAdapter;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.GridView;
-import android.widget.Toast;
 
 
 /**
@@ -31,7 +29,6 @@ public class ImageAdapter extends BaseAdapter {
         picture_size = pic_size;
 
     }
-
 
     //Number of elemens show in gridview...
     public int getCount() {
@@ -53,7 +50,7 @@ public class ImageAdapter extends BaseAdapter {
         String newString;
         int in;
 
-        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "public View getView. position: " + position);
+        if(MainActivity.ENABLE2_LOGS) Log.d(MainActivity.TAG, "public View getView. position: " + position);
 
         ImageView imageView;
         if (convertView == null) {
@@ -65,7 +62,7 @@ public class ImageAdapter extends BaseAdapter {
             imageView.setPadding(1, 1, 1, 1);
 
             if  (MainActivity.mImageViews[position] == null) {
-                if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "imageView.setId: " + position);
+                if(MainActivity.ENABLE2_LOGS) Log.d(MainActivity.TAG, "imageView.setId: " + position);
                 MainActivity.mImageViews[position] = imageView;
 
                 //imageView.setImageBitmap(decodeSampledBitmapFromResource(imageView.getResources(), MainActivity.NewArray[0], picture_size, picture_size));
@@ -77,20 +74,12 @@ public class ImageAdapter extends BaseAdapter {
             imageView = (ImageView) convertView;
         }
 
-        //Log.d(BabyMain.TAG, "getResources().getResourceEntryName: " + imageView.getResources().getResourceEntryName(Pictures.MEMORY_IDS[position]));
-
-        //imageView.setImageBitmap(decodeSampledBitmapFromResource(imageView.getResources(), MainActivity.NewArray[position], picture_size, picture_size));
-
-       // imageView.setImageBitmap(decodeSampledBitmapFromResource(imageView.getResources(), MainActivity.NewArray[0], picture_size, picture_size));
-
-        //imageView.setImageResource(MainActivity.NewArray[0]);
-
-        //imageView.setImageResource(MemoryGameActivity.NewArray[position]);
         int color = Color.parseColor("#FFFFFF");
         imageView.setColorFilter(color);
 
         return imageView;
     }
+
 
     public static int calculateInSampleSize(BitmapFactory.Options options,
                                             int reqWidth, int reqHeight) {
@@ -133,4 +122,5 @@ public class ImageAdapter extends BaseAdapter {
         options.inJustDecodeBounds = false;
         return BitmapFactory.decodeResource(res, resId, options);
     }
+
 }

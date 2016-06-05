@@ -32,8 +32,10 @@
         android:clipChildren="true"
         android:columnWidth="90dp"
         android:numColumns="2"
-        android:verticalSpacing="5dp"
-        android:horizontalSpacing="5dp"
+        android:verticalSpacing="10sp"
+        android:horizontalSpacing="10sp"
+        android:layout_marginLeft="10dip"
+        android:layout_marginRight="10dip"
         android:scrollbars="none"
         android:stretchMode="columnWidth"
         android:gravity="center"
@@ -323,7 +325,7 @@
             android:layout_marginBottom="5dip"
             android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
-            android:onClick="onUpgradeAppButtonClicked"
+            android:onClick="BuyButton"
             android:src="@drawable/buy"
             />
 

@@ -35,6 +35,9 @@ public class ChartActivity extends AppCompatActivity {
     public static String[] Players_game;
     public static long[] Dates_game;
 
+    SecurePreferences preferences;
+    int testint;
+    int DbSize;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,16 +60,36 @@ public class ChartActivity extends AppCompatActivity {
         DatabaseHandler db = new DatabaseHandler(this);
         Object[] arrayObjects_game = db.getAll_game_for_chart();
 
-        if(db.getDBsize_game()<3){
+        preferences = new SecurePreferences(this, "my-preferences", "SometopSecretKey1235", true);
+        testint = Integer.parseInt(preferences.getIntString("testint"));
+
+        if (MainActivity.ENABLE_LOGS) Log.v("Pete", "testint: " + testint);
+
+        DbSize = db.getDBsize_game();
+        String HTMLsourceString = "<font color=#00FF00><b> Nothing to show here yet. Do some training in PlayMode! </b></font>";
+        boolean DoNotShowCraph = true;
+
+        if(DbSize<3){
+            HTMLsourceString = "<font color=#00FF00><b> Nothing to show here yet. Do some training in PlayMode! </b></font>";
+            DoNotShowCraph = true;
+        }else{
+            DoNotShowCraph = false;
+        }
+
+        if(testint!=666 && DbSize>=10){
+            HTMLsourceString = "<font color=#00FF00><b> Buy Premium Subscription to show more progress! </b></font>";
+            DoNotShowCraph = true;
+        }
+
+        if(DoNotShowCraph){
             LinearLayout ll = (LinearLayout) findViewById(R.id.chart);
             ll.setGravity(Gravity.CENTER);
 
-            String HTMLsourceString;
+
             int TextBackRoundColour = 0xaa000000;
             int FontSize = 20;
 
             final TextView ManualModeHeader = new TextView(this);
-            HTMLsourceString = "<font color=#00FF00><b> Nothing to show here yet. Do some training in PlayMode! </b></font>";
             ManualModeHeader.setText(Html.fromHtml(HTMLsourceString));
             ManualModeHeader.setGravity(Gravity.CENTER);
             ManualModeHeader.setTextColor(Color.WHITE);
@@ -190,7 +213,7 @@ public class ChartActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ScoresActivity onResume...");
+        if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ChartActivity onResume...");
 
         /*
         if (isSignedIn()) {
@@ -205,18 +228,7 @@ public class ChartActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
-        if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ScoresActivity onPause...");
+        if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ChartActivity onPause...");
     }
 
-    @Override
-    public void onStart() {
-        if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ScoresActivity onStart...");
-        super.onStart();
-    }
-
-    @Override
-    public void onStop() {
-        if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ScoresActivity onStop...");
-        super.onStop();
-    }
 }

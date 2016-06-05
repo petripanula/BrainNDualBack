@@ -77,6 +77,6 @@ Save this file as res/values/games-ids.xml in your project.
     <string name="achievement_nback_6_area_3x3_result_100">CgkI5LrG0eIBEAIQTA</string>
     <string name="achievement_nback_6_area_4x4_result_100">CgkI5LrG0eIBEAIQTQ</string>
     <string name="achievement_nback_6_area_5x5_result_100">CgkI5LrG0eIBEAIQTg</string>
-    <string name="leaderboard_global_nback_3x3_playmode_hiscores">CgkI5LrG0eIBEAIQBw</string>
+    <string name="leaderboard_global_nback_3x3_playmode_hiscores">CgkI5LrG0eIBEAIQUA</string>
     <string name="event_nback_1_area_2x2_100">CgkI5LrG0eIBEAIQCA</string>
 </resources>

@@ -45,4 +45,7 @@
         android:defaultValue="false"
         android:summary="This option if selected will disable adds"
         android:key="addson" />
+    <EditTextPreference android:title="For Dev"
+        android:key="devstring"
+        android:summary="dev string"></EditTextPreference>
 </PreferenceScreen>

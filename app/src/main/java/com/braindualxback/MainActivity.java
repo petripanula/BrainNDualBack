@@ -84,12 +84,17 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     String GameLeaderBoard;
     boolean PushLeaderScore = false;
     boolean ContinuePlaying = true;
-    public static int GamePoints = 0;
+    //public static int GamePoints = 0;
+    public static int[][] GamePointsLevel = new int[nBacks][2];
+    int round;
 
     int Language;
     int Soundtheme;
 
     int testint;
+    int devstring_int = 0;
+
+    public static Boolean WantToBuy = false;
 
     String[][][] nBackAchievementID = new String[nBacks][Areas][Levels];
     public static boolean[][][] mnBackAchievement = new boolean[nBacks][Areas][Levels];
@@ -144,7 +149,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     int nBack = 2;
     int NbrOfPictures;
     int NbrOfPictures_old;
-    public static final int PictureSteps = 30;
+    public static final int PictureSteps = 31;
     int NumberOfPicturesToShow = PictureSteps;
     boolean ClickedPic = false;
     boolean ClickedSound = false;
@@ -241,6 +246,11 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         ReadPreferences();
 
+        if(devstring_int==666){
+            testint = 666;
+            saveLocal();
+        }
+
         loadLocal();
 
         if(ENABLE_LOGS) Log.d(TAG, "testint: " + testint);
@@ -248,21 +258,23 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         if(testint==666){
             if(ENABLE_LOGS) Log.d(TAG, "App is purchased!!!");
             mSubscribedToInfiniteLaugh=true;
+            mSubscribedToInfiniteGas = true;
             mIsPremium = true;
             DisableAdds = true;
         }
 
         findViewById(R.id.adView).setVisibility(DisableAdds ? View.GONE : View.VISIBLE);
+        findViewById(R.id.buy).setVisibility(DisableAdds ? View.GONE : View.VISIBLE);
 
         if(!DisableAdds) {
 
-            MobileAds.initialize(getApplicationContext(), "ca-app-pub-3940256099942544~3347511713");
+            MobileAds.initialize(getApplicationContext(), "ca-app-pub-7557334974231969~4312875732");
             AdView mAdView = (AdView) findViewById(R.id.adView);
             AdRequest adRequest = new AdRequest.Builder().build();
             mAdView.loadAd(adRequest);
 
             mInterstitialAd = new InterstitialAd(this);
-            mInterstitialAd.setAdUnitId("ca-app-pub-3940256099942544/1033173712");
+            mInterstitialAd.setAdUnitId("ca-app-pub-7557334974231969/2696541733");
 
             mInterstitialAd.setAdListener(new AdListener() {
                 @Override
@@ -303,11 +315,10 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         // Start setup. This is asynchronous and the specified listener
         // will be called once setup completes.
         if(ENABLE_LOGS) Log.d(TAG, "Starting setup.");
-        Log.d(TAG, "Starting setup.");
 
         mIabHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
             public void onIabSetupFinished(IabResult result) {
-                Log.d(TAG, "Setup finished.");
+                if(ENABLE_LOGS) Log.d(TAG, "Setup finished.");
 
                 if (!result.isSuccess()) {
                     // Oh noes, there was a problem.
@@ -384,21 +395,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         gridview.setAdapter(new ImageAdapter(this, NbrOfPictures, picturewidth));
 
-        /*
-        gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View v,
-                                    int position, long id) {
-                if (ENABLE_LOGS) Log.d("Pete", "onItemClick - v.getId(): " + v.getId());
-
-                imageView = (ImageView) v;
-                imageView.clearColorFilter();
-
-
-            }
-
-        });
-        */
-
         boolean ReteThis = true;
 
         if (ReteThis) {
@@ -462,8 +458,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void onStart() {
         if(ENABLE_LOGS) Log.v("Pete", "MainActivity onStart...");
         super.onStart();
-        // The rest of your onStart() code.
-        //EasyTracker.getInstance(this).activityStart(this);  // Add this method.
+
     }
 
     @Override
@@ -493,7 +488,11 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         InitAll();
         setWaitScreen(false);
 
-        GamePoints = 0;
+        for(int l=0; l<GamePointsLevel.length; l++) {
+            GamePointsLevel[l][0] = 0;
+            GamePointsLevel[l][1] = 0;
+            round = 0;
+        }
 
         if(!manualmode){
             InitPlayModeParam();
@@ -602,8 +601,11 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         findViewById(R.id.linearview).setVisibility(View.VISIBLE);
         findViewById(R.id.undergrid).setVisibility(View.VISIBLE);
 
-
-        GamePoints = 0;
+        for(int l=0; l<GamePointsLevel.length; l++) {
+            GamePointsLevel[l][0] = 0;
+            GamePointsLevel[l][1] = 0;
+            round = 0;
+        }
 
         if (!manualmode) {
             InitPlayModeParam();
@@ -791,6 +793,18 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         //int ran = random.nextInt(35);
         //db.addScore_game(playername,ran);
 
+        /*
+        gridview = (GridView) findViewById(R.id.gridview);
+        int HorizontalSpacing = gridview.getHorizontalSpacing();
+        if (ENABLE_LOGS) Log.v("Pete", "HorizontalSpacing: " + HorizontalSpacing);
+        gridview.setVerticalSpacing(10);
+        //"gridviewname".getVerticalSpacing()
+        */
+        /*
+        GamePoints = 300;
+        Games.Leaderboards.submitScore(mHelper.getApiClient(), GameLeaderBoard, GamePoints);
+        */
+
         Intent intent = new Intent(this, InfoActivity.class);
         startActivity(intent);
     }
@@ -876,6 +890,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void ShowRedTimer(long startfromthis_ms) {
         if(ENABLE_LOGS) Log.v("Pete", "In ShowRedTimer...");
 
+        NumberOfPicturesToShow-=1;
+
         int FontSize = 20;
         TextHeader = (TextView)findViewById(R.id.undergrid);
         TextHeader.setTextSize(TypedValue.COMPLEX_UNIT_DIP, FontSize);
@@ -884,8 +900,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         TextHeader.setTextColor(Color.WHITE);
         String message = "" + NumberOfPicturesToShow;
         TextHeader.setText(message);
-
-        NumberOfPicturesToShow-=1;
 
         if(ENABLE_LOGS) Log.v("Pete", "NumberOfPicturesToShow: " + NumberOfPicturesToShow);
 
@@ -911,10 +925,19 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             }
 
             if(!manualmode) {
+                //We Play only once the first level
+                if(nBack==1)
+                    increaseNback[nBack]++;
+
                 increaseNback[nBack]++;
 
                 if (ResultPercent>=50){
+                    //We Play only once the first level
+                    if(nBack==1)
+                        PlayResult[nBack]++;
+
                     PlayResult[nBack]++;
+                    round++;
                 }
             }
 
@@ -930,7 +953,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                     } else {
                         if(ENABLE_LOGS) Log.v("Pete", "Game over.....");
                         //DatabaseHandler db = new DatabaseHandler(this);
-                        db.addScore_game(playername,GamePoints);
+                        db.addScore_game(playername,GetPlayerPoint());
                         PushLeaderScore = true;
                         pushAccomplishments();
                     }
@@ -940,7 +963,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
                     } else {
                         if(ENABLE_LOGS) Log.v("Pete", "Game over.....");
-                        db.addScore_game(playername,GamePoints);
+                        db.addScore_game(playername,GetPlayerPoint());
                         PushLeaderScore = true;
                         pushAccomplishments();
                     }
@@ -1254,6 +1277,9 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         String soundtheme = SP.getString("soundtheme","1");
         DisableAdds =  SP.getBoolean("addson", false);
 
+        String devstring = SP.getString("devstring", "1");
+        devstring_int = Integer.parseInt(devstring);
+
         Language = Integer.parseInt(language);
         Soundtheme = Integer.parseInt(soundtheme);
         nBack = Integer.parseInt(nback);
@@ -1271,6 +1297,127 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         NbrOfPictures = Integer.parseInt(areasize) * Integer.parseInt(areasize);
     }
 
+    public void ShowPopUp_Buy(){
+        if (ENABLE_LOGS) Log.d("Pete", "ShowPopUp_Buy....");
+
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+
+        int FontSize = 16;
+        int TextBackRoundColour = 0xaa000000;
+
+        ImageButton justfind;
+
+        // POPUP WINDOW STARTS //
+        LayoutInflater layoutInflater  = (LayoutInflater)getBaseContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+        View popupView = layoutInflater.inflate(R.layout.popup, null);
+
+        // final PopupWindow popupWindow;
+        popupWindow = new PopupWindow(popupView, ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
+        popupWindow.setFocusable(true);
+        popupWindow.setOutsideTouchable(false);
+        popupWindow.setHeight(ActionBar.LayoutParams.WRAP_CONTENT);
+        popupWindow.setWidth(ActionBar.LayoutParams.WRAP_CONTENT);
+
+        LinearLayout ll = (LinearLayout)popupView.findViewById(R.id.popup_ll);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+
+        final TextView EmptyRowView = new TextView(this);
+        EmptyRowView.setText("\n");
+        EmptyRowView.setGravity(Gravity.CENTER);
+        EmptyRowView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+        EmptyRowView.setTypeface(EmptyRowView.getTypeface(), Typeface.BOLD);
+        ll.addView(EmptyRowView,params);
+
+        final TextView rowTextView = new TextView(this);
+        String message = " Remove Ads and Enable Progress Chart! ";
+        rowTextView.setText(message);
+        rowTextView.setGravity(Gravity.CENTER);
+        rowTextView.setTextColor(Color.WHITE);
+        rowTextView.setBackgroundColor(TextBackRoundColour);
+        rowTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+        rowTextView.setTypeface(rowTextView.getTypeface(), Typeface.BOLD);
+        ll.addView(rowTextView,params);
+
+        final TextView rowTextView1 = new TextView(this);
+        rowTextView1.setText("");
+        rowTextView1.setGravity(Gravity.CENTER);
+        rowTextView1.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+        rowTextView1.setTypeface(rowTextView1.getTypeface(), Typeface.BOLD);
+        ll.addView(rowTextView1,params);
+
+        final TextView rowTextView2 = new TextView(this);
+        message = " Buy premium and support developer? ";
+        rowTextView2.setText(message);
+        rowTextView2.setGravity(Gravity.CENTER);
+        rowTextView2.setTextColor(Color.WHITE);
+        rowTextView2.setBackgroundColor(TextBackRoundColour);
+        rowTextView2.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+        rowTextView2.setTypeface(rowTextView2.getTypeface(), Typeface.BOLD);
+        ll.addView(rowTextView2,params);
+
+        final TextView EmptyRowView2 = new TextView(this);;
+        EmptyRowView2.setText("\n");
+        EmptyRowView2.setGravity(Gravity.CENTER);
+        EmptyRowView2.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+        EmptyRowView2.setTypeface(EmptyRowView2.getTypeface(), Typeface.BOLD);
+        ll.addView(EmptyRowView2,params);
+
+
+        Button btnDismiss = new Button(this);
+        LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        params2.setMargins(5, 5, 5, 10);
+        btnDismiss.setLayoutParams(params2);
+        btnDismiss.setText("CANCEL");
+        btnDismiss.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+        btnDismiss.setBackgroundResource(R.drawable.button_info_page);
+        btnDismiss.setTextColor(Color.WHITE);
+
+        ll.addView(btnDismiss, params2);
+
+        btnDismiss.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (ENABLE_LOGS) Log.v("Pete", "ShowPopUp onClick - CANCEL....");
+                popupWindow.dismiss();
+                //called_show();
+            }
+        });
+
+        Button buy = new Button(this);
+        LinearLayout.LayoutParams params3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        params3.setMargins(5,5,5,10);
+        buy.setLayoutParams(params3);
+        buy.setText("BUY");
+        buy.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+        buy.setBackgroundResource(R.drawable.button_info_page);
+        buy.setTextColor(Color.WHITE);
+
+        ll.addView(buy, params3);
+
+        buy.setOnClickListener(new Button.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                if (ENABLE_LOGS) Log.v("Pete", "ShowPopUp onClick - buy....");
+                MainActivity.SetBuyInWanted();
+                popupWindow.dismiss();
+                onUpgradePremium();
+
+            }
+        });
+
+        //Just find some view where we can refer....
+        justfind = (ImageButton)findViewById(R.id.settings);
+        popupWindow.showAtLocation(justfind, Gravity.CENTER, 0, 0);
+        // POPUP WINDOW ENDS //
+    }
+
+    public static void SetBuyInWanted(){
+        WantToBuy = true;
+    }
+
     public void ShowPopUp_OK(final boolean callShow){
         if (ENABLE_LOGS) Log.d("Pete", "ShowPopUp_OK....");
 
@@ -1279,8 +1426,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
-        //int windowWidth = size.x;
-        //int windowHeight = size.y;
 
         int FontSize = 16;
         int TextBackRoundColour = 0xaa000000;
@@ -1293,8 +1438,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         // final PopupWindow popupWindow;
         popupWindow = new PopupWindow(popupView, ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
         popupWindow.setFocusable(true);
-        //popupWindow.setWidth(windowWidth * 2 / 3);
-        //popupWindow.setHeight(windowWidth*2/3);
         popupWindow.setOutsideTouchable(false);
         popupWindow.setHeight(ActionBar.LayoutParams.WRAP_CONTENT);
         popupWindow.setWidth(ActionBar.LayoutParams.WRAP_CONTENT);
@@ -1311,7 +1454,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         rowTextView0.setGravity(Gravity.CENTER);
         rowTextView0.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         rowTextView0.setTypeface(rowTextView0.getTypeface(), Typeface.BOLD);
-        // add the textview to the linearlayout
         ll.addView(rowTextView0,params);
 
         final TextView rowTextView = new TextView(this);
@@ -1322,7 +1464,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         rowTextView.setBackgroundColor(TextBackRoundColour);
         rowTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         rowTextView.setTypeface(rowTextView.getTypeface(), Typeface.BOLD);
-        // add the textview to the linearlayout
         ll.addView(rowTextView,params);
 
         final TextView rowTextView2 = new TextView(this);
@@ -1333,7 +1474,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         rowTextView2.setBackgroundColor(TextBackRoundColour);
         rowTextView2.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         rowTextView2.setTypeface(rowTextView2.getTypeface(), Typeface.BOLD);
-        // add the textview to the linearlayout
         ll.addView(rowTextView2,params);
 
         final TextView rowTextView3 = new TextView(this);
@@ -1344,7 +1484,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         rowTextView3.setBackgroundColor(TextBackRoundColour);
         rowTextView3.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         rowTextView3.setTypeface(rowTextView3.getTypeface(), Typeface.BOLD);
-        // add the textview to the linearlayout
         ll.addView(rowTextView3,params);
 
         final TextView rowTextView4 = new TextView(this);
@@ -1355,7 +1494,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         rowTextView4.setBackgroundColor(TextBackRoundColour);
         rowTextView4.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         rowTextView4.setTypeface(rowTextView4.getTypeface(), Typeface.BOLD);
-        // add the textview to the linearlayout
         ll.addView(rowTextView4,params);
 
         final TextView rowTextView5 = new TextView(this);
@@ -1366,7 +1504,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         rowTextView5.setBackgroundColor(TextBackRoundColour);
         rowTextView5.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         rowTextView5.setTypeface(rowTextView5.getTypeface(), Typeface.BOLD);
-        // add the textview to the linearlayout
         ll.addView(rowTextView5,params);
 
         final TextView rowTextView6 = new TextView(this);
@@ -1375,20 +1512,15 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         rowTextView6.setGravity(Gravity.CENTER);
         rowTextView6.setTextColor(Color.WHITE);
         rowTextView6.setBackgroundColor(TextBackRoundColour);
-        //rowTextView6.setShadowLayer((float)0.5, 0, 0, Color.BLACK);
         rowTextView6.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         rowTextView6.setTypeface(rowTextView6.getTypeface(), Typeface.BOLD);
-        // add the textview to the linearlayout
         ll.addView(rowTextView6,params);
 
         final TextView rowTextView7 = new TextView(this);
-        //rowTextView.setText(message);
         rowTextView7.setText("\n");
         rowTextView7.setGravity(Gravity.CENTER);
-        //rowTextView6.setShadowLayer((float)0.5, 0, 0, Color.BLACK);
         rowTextView7.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         rowTextView7.setTypeface(rowTextView7.getTypeface(), Typeface.BOLD);
-        // add the textview to the linearlayout
         ll.addView(rowTextView7,params);
 
         int ResultPercent = (int)((double)(CorrectPicClicked + CorrectSoundClicked) / (double)(CorrectPicClicked + CorrectSoundClicked + WrongPicClicked + WrongSoundClicked + MissedPicClick + MissedSoundClick) * 100);
@@ -1399,63 +1531,61 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         rowTextView8.setGravity(Gravity.CENTER);
         rowTextView8.setTextColor(Color.WHITE);
         rowTextView8.setBackgroundColor(TextBackRoundColour);
-        //rowTextView6.setShadowLayer((float)0.5, 0, 0, Color.BLACK);
         rowTextView8.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         rowTextView8.setTypeface(rowTextView7.getTypeface(), Typeface.BOLD);
-        // add the textview to the linearlayout
         ll.addView(rowTextView8,params);
 
         message = "\n\n";
 
         final TextView lastRowTextView = new TextView(this);
-        //rowTextView.setText(message);
         lastRowTextView.setText(message);
         lastRowTextView.setGravity(Gravity.CENTER);
-        //rowTextView6.setShadowLayer((float)0.5, 0, 0, Color.BLACK);
         lastRowTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         lastRowTextView.setTypeface(lastRowTextView.getTypeface(), Typeface.BOLD);
-        // add the textview to the linearlayout
         ll.addView(lastRowTextView,params);
 
         if(!manualmode) {
             if (increaseNback[nBack] == 1) {
                 if (PlayResult[nBack] == 1) {
-                    message = " Nice Work - continue playing! Points: " + GamePoints + " ";
+                    message = " Nice Work - continue playing! Point from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
                     ContinuePlaying = true;
                 } else {
-                    message = " Game over! Points: " + GamePoints + " ";
+                    message = " Game over! Point from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
                 }
             }
             if (increaseNback[nBack] == 2) {
                 if (PlayResult[nBack] == 2) {
-                    message = " Nice Work - nBack will be increased! Points: " + GamePoints + " ";
+                    message = " Nice Work - nBack increased! Point from this level: " + GamePointsLevel[nBack][1] + " TotalPoints: " + GetPlayerPoint() + " ";
+
+                    if(nBack==1)
+                        message = " Nice Work - nBack increased! Point from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
+
                     nBack++;
                     ContinuePlaying = true;
+                    round = 0;
                 } else {
-                    message = " Game over now! Points: " + GamePoints + " ";
+                    message = " Game over now! Point from this level: " + GamePointsLevel[nBack][1] + " TotalPoints: " + GetPlayerPoint() + " ";
+
+                    if(nBack==1)
+                        message = " Game over now! Point from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
+
                 }
             }
 
             final TextView last2RowTextView = new TextView(this);
-            //rowTextView.setText(message);
             last2RowTextView.setText(message);
             last2RowTextView.setGravity(Gravity.CENTER);
             last2RowTextView.setTextColor(Color.WHITE);
             last2RowTextView.setBackgroundColor(TextBackRoundColour);
-            //rowTextView6.setShadowLayer((float)0.5, 0, 0, Color.BLACK);
             last2RowTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
             last2RowTextView.setTypeface(last2RowTextView.getTypeface(), Typeface.BOLD);
-            // add the textview to the linearlayout
             ll.addView(last2RowTextView, params);
 
             final TextView last3RowTextView = new TextView(this);
-            //rowTextView.setText(message);
             last3RowTextView.setText("\n");
             last3RowTextView.setGravity(Gravity.CENTER);
-            //rowTextView6.setShadowLayer((float)0.5, 0, 0, Color.BLACK);
             last3RowTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
             last3RowTextView.setTypeface(last2RowTextView.getTypeface(), Typeface.BOLD);
-            // add the textview to the linearlayout
             ll.addView(last3RowTextView, params);
 
         }
@@ -1530,13 +1660,14 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void loadLocal() {
-        if (ENABLE_LOGS) Log.v("Pete", "AccomplishmentsOutbox loadLocal...");
+        if (ENABLE_LOGS) Log.v("Pete", "loadLocal...");
 
         //Init
         preferences = new SecurePreferences(this, "my-preferences", "SometopSecretKey1235", true);
 
         testint = Integer.parseInt(preferences.getIntString("testint"));
-        if (ENABLE_LOGS) Log.v("Pete", "AccomplishmentsOutbox loadLocal - testint: " + testint);
+
+        if (ENABLE_LOGS) Log.v("Pete", "loadLocal - testint: " + testint);
     }
 
     // Input area and nBack....
@@ -1558,6 +1689,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                  if(ENABLE_LOGS) Log.v("Pete","Disconnection from Play Services called from activity with code: " + requestCode);
             mHelper.getApiClient().disconnect();
         } else {
+            if(ENABLE_LOGS) Log.v("Pete","Else - onActivityResult requestCode: " + requestCode + " resultCode: " + resultCode);
             //TODO
             mHelper.onActivityResult(requestCode, resultCode, intent);
 
@@ -1592,7 +1724,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         //For LeaderBoard
 
         if(PushLeaderScore) {
-            Games.Leaderboards.submitScore(mHelper.getApiClient(), GameLeaderBoard, GamePoints);
+            Games.Leaderboards.submitScore(mHelper.getApiClient(), GameLeaderBoard, GetPlayerPoint());
             PushLeaderScore = false;
         }
 
@@ -1690,12 +1822,25 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void UpdatePlayerPoint(int points){
-        GamePoints = GamePoints + points;
+        GamePointsLevel[nBack][round] = GamePointsLevel[nBack][round] + points*nBack;
 
-        if(GamePoints < 0) GamePoints = 0;
+        if(GamePointsLevel[nBack][round] < 0) GamePointsLevel[nBack][round] = 0;
 
-        if(ENABLE_LOGS) Log.v("Pete", "GamePoints: " + GamePoints);
+        if(ENABLE_LOGS) Log.v("Pete", "GamePoints: " + GamePointsLevel[nBack][round]);
     }
+
+    public int GetPlayerPoint(){
+
+        int points = 0;
+
+        for(int l=0; l<GamePointsLevel.length; l++) {
+            points = points + GamePointsLevel[l][0] + GamePointsLevel[l][1];
+        }
+
+        return points;
+
+    }
+
 
     public void PlayClick() {
 
@@ -1829,8 +1974,12 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         }
     }
 
+    public void BuyButton(View arg0) {
+        ShowPopUp_Buy();
+    }
+
     // User clicked the "Upgrade to Premium" button.
-    public void onUpgradeAppButtonClicked(View arg0) {
+    public void onUpgradePremium() {
         Log.d(TAG, "Upgrade button clicked; launching purchase flow for upgrade.");
         setWaitScreen(true);
 

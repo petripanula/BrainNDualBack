@@ -428,7 +428,7 @@ public class InfoActivity extends AppCompatActivity {
 
         final TextView Body251 = new TextView(this);
         Body251.setAutoLinkMask(15);
-        HTMLsourceString = "<font color=#00FF00>  In ManualMode you are able to set the nBack number and the area size used in training. Try to catch all Achievements :) In PlayMode you play in 3x3 area and start from nBack 1. If you reach 50% score or more twice using the same nBack number game will increase the nBack. Results below 50% will end up to 'GAME OVER' </font>";
+        HTMLsourceString = "<font color=#00FF00>  In ManualMode you are able to set the nBack number and the area size used in training. Try to catch all Achievements :) In PlayMode you play in 3x3 area and start from nBack 1. If you reach 50% score or more twice using the same nBack number game will increase the nBack (expect the first level which you need to play only once). Results below 50% will end up to 'GAME OVER' </font>";
         Body251.setText(Html.fromHtml(HTMLsourceString));
         Body251.setGravity(Gravity.CENTER);
         Body251.setTextColor(Color.WHITE);
