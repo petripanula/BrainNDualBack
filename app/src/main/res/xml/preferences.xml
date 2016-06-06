@@ -41,11 +41,7 @@
         android:defaultValue="1"
         android:entries="@array/listArray4"
         android:entryValues="@array/listValues4" />
-    <CheckBoxPreference android:title="Disable Adds"
-        android:defaultValue="false"
-        android:summary="This option if selected will disable adds"
-        android:key="addson" />
-    <EditTextPreference android:title="For Dev"
+    <EditTextPreference android:title="For Developer"
         android:key="devstring"
-        android:summary="dev string"></EditTextPreference>
+        android:summary="developer input"></EditTextPreference>
 </PreferenceScreen>

@@ -70,6 +70,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public static final String TAG = "Pete";
 
     boolean DisableAdds = false;
+    boolean RestartRequired = false;
 
     public static final int nBacks = 6;
     public static final int Areas = 4;
@@ -85,7 +86,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     boolean PushLeaderScore = false;
     boolean ContinuePlaying = true;
     //public static int GamePoints = 0;
-    public static int[][] GamePointsLevel = new int[nBacks][2];
+    public static int[][] GamePointsLevel = new int[nBacks+1][2];
     int round;
 
     int Language;
@@ -147,6 +148,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     int random_nbr = -1;
     int sound_id = -1;
     int nBack = 2;
+    int nBackWhenPlaying = 2;
     int NbrOfPictures;
     int NbrOfPictures_old;
     public static final int PictureSteps = 31;
@@ -243,6 +245,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         //getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
+
+        RestartRequired = false;
 
         ReadPreferences();
 
@@ -506,8 +510,9 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             editor.apply();
         }
 
-        if(NbrOfPictures != NbrOfPictures_old) {
+        if((NbrOfPictures != NbrOfPictures_old) || RestartRequired) {
             if(ENABLE_LOGS) Log.v("Pete", "MainActivity onResume - recreate...");
+            RestartRequired = false;
 
             for(int l=0; l<mImageViews.length; l++) {
                 mImageViews[l] = null;
@@ -616,6 +621,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void Start(View arg0){
         if (ENABLE_LOGS) Log.d("Pete", "Start...");
 
+        nBackWhenPlaying = 2;
+
         if(mInterstitialAd!=null) {
             if (mInterstitialAd.isLoaded()) {
                 mInterstitialAd.show();
@@ -658,24 +665,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         findViewById(R.id.horizontalview).setVisibility(View.VISIBLE);
         findViewById(R.id.linearview).setVisibility(View.GONE);
         findViewById(R.id.undergrid).setVisibility(View.GONE);
-
-        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
-                Configuration.SCREENLAYOUT_SIZE_NORMAL){
-            //TODO
-            if (ENABLE_LOGS) Log.d("Pete", "SCREENLAYOUT_SIZE_NORMAL");
-        }
-
-        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
-                Configuration.SCREENLAYOUT_SIZE_LARGE){
-            //TODO
-            if (ENABLE_LOGS) Log.d("Pete", "SCREENLAYOUT_SIZE_LARGE");
-        }
-
-        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
-                Configuration.SCREENLAYOUT_SIZE_XLARGE){
-            //TODO
-            if (ENABLE_LOGS) Log.d("Pete", "SCREENLAYOUT_SIZE_XLARGE");
-        }
 
         int FontSize = 12;
 
@@ -892,7 +881,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         NumberOfPicturesToShow-=1;
 
-        int FontSize = 20;
+        int FontSize = ReturnFontSize();
+
         TextHeader = (TextView)findViewById(R.id.undergrid);
         TextHeader.setTextSize(TypedValue.COMPLEX_UNIT_DIP, FontSize);
         TextHeader.setTypeface(TextHeader.getTypeface(), Typeface.BOLD);
@@ -1077,6 +1067,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 findViewById(R.id.linearview).setVisibility(View.VISIBLE);
                 findViewById(R.id.undergrid).setVisibility(View.VISIBLE);
 
+                nBack = nBackWhenPlaying;
                 ShowToastnBack();
             }
         }.start();
@@ -1278,7 +1269,12 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         DisableAdds =  SP.getBoolean("addson", false);
 
         String devstring = SP.getString("devstring", "1");
-        devstring_int = Integer.parseInt(devstring);
+
+        try{
+            devstring_int = Integer.parseInt(devstring);
+        }catch(NumberFormatException ex){ // handle your exception
+            if (ENABLE_LOGS) Log.d("Pete", "ReadPreferences() - NumberFormatException when converting to int: " + devstring);
+        }
 
         Language = Integer.parseInt(language);
         Soundtheme = Integer.parseInt(soundtheme);
@@ -1525,13 +1521,15 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         int ResultPercent = (int)((double)(CorrectPicClicked + CorrectSoundClicked) / (double)(CorrectPicClicked + CorrectSoundClicked + WrongPicClicked + WrongSoundClicked + MissedPicClick + MissedSoundClick) * 100);
 
+        int FontSizeResult = FontSize + 2;
+
         final TextView rowTextView8 = new TextView(this);
         message = " Result %: " + ResultPercent + " ";
         rowTextView8.setText(message);
         rowTextView8.setGravity(Gravity.CENTER);
         rowTextView8.setTextColor(Color.WHITE);
         rowTextView8.setBackgroundColor(TextBackRoundColour);
-        rowTextView8.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+        rowTextView8.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeResult);
         rowTextView8.setTypeface(rowTextView7.getTypeface(), Typeface.BOLD);
         ll.addView(rowTextView8,params);
 
@@ -1547,27 +1545,28 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         if(!manualmode) {
             if (increaseNback[nBack] == 1) {
                 if (PlayResult[nBack] == 1) {
-                    message = " Nice Work - continue playing! Point from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
+                    message = " Nice Work - continue playing! Points from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
                     ContinuePlaying = true;
                 } else {
-                    message = " Game over! Point from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
+                    message = " Game over! Points from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
                 }
             }
             if (increaseNback[nBack] == 2) {
                 if (PlayResult[nBack] == 2) {
-                    message = " Nice Work - nBack increased! Point from this level: " + GamePointsLevel[nBack][1] + " TotalPoints: " + GetPlayerPoint() + " ";
+                    message = " Nice Work - nBack increased! Points from this level: " + GamePointsLevel[nBack][1] + " TotalPoints: " + GetPlayerPoint() + " ";
 
                     if(nBack==1)
-                        message = " Nice Work - nBack increased! Point from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
+                        message = " Nice Work - nBack increased! Points from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
 
                     nBack++;
+                    nBackWhenPlaying = nBack;
                     ContinuePlaying = true;
                     round = 0;
                 } else {
-                    message = " Game over now! Point from this level: " + GamePointsLevel[nBack][1] + " TotalPoints: " + GetPlayerPoint() + " ";
+                    message = " Game over now! Points from this level: " + GamePointsLevel[nBack][1] + " TotalPoints: " + GetPlayerPoint() + " ";
 
                     if(nBack==1)
-                        message = " Game over now! Point from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
+                        message = " Game over now! Points from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
 
                 }
             }
@@ -1610,7 +1609,21 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 popupWindow.dismiss();
 
                 if(ContinuePlaying && !manualmode){
-                    ContinuePlayingTimer(10);
+
+                    if(mInterstitialAd!=null) {
+                        if (mInterstitialAd.isLoaded()) {
+                            if (ENABLE_LOGS) Log.d("Pete", "show ads...");
+                            mInterstitialAd.show();
+                        } else {
+                            if (ENABLE_LOGS) Log.d("Pete", "No Ads Loaded - start game...");
+                            ContinuePlayingTimer(10);
+                        }
+                    }else{
+                        if (ENABLE_LOGS) Log.d("Pete", "mInterstitialAd is null - start game...");
+                        ContinuePlayingTimer(10);
+                    }
+
+                    //ContinuePlayingTimer(10);
                 }
                 //if(callShow)
                 //    called_show();
@@ -1815,6 +1828,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void InitPlayModeParam(){
+
         for(int i=0;i<nBacks;i++) {
             increaseNback[i] = 0;
             PlayResult[i] = 0;
@@ -2140,6 +2154,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 if(mIsPremium){
                     Log.d(TAG, "OnIabPurchaseFinishedListener - Adding 666 to testint...");
                     testint = 666;
+                    RestartRequired = true;
                     saveLocal();
                 }
             }
@@ -2232,6 +2247,31 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         bld.setNeutralButton("OK", null);
         Log.d(TAG, "Showing alert dialog: " + message);
         bld.create().show();
+    }
+
+    public int ReturnFontSize(){
+
+        int FontSize = 20;
+
+        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                Configuration.SCREENLAYOUT_SIZE_NORMAL){
+            if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ScoresActivity SCREENLAYOUT_SIZE_NORMAL...");
+            FontSize = 20;
+        }
+
+        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                Configuration.SCREENLAYOUT_SIZE_LARGE){
+            if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ScoresActivity SCREENLAYOUT_SIZE_LARGE...");
+            FontSize = 22;
+        }
+
+        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                Configuration.SCREENLAYOUT_SIZE_XLARGE){
+            if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ScoresActivity SCREENLAYOUT_SIZE_XLARGE...");
+            FontSize = 24;
+        }
+
+        return FontSize;
     }
 
 
