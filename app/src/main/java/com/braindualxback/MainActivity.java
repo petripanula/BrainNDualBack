@@ -100,8 +100,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     String[][][] nBackAchievementID = new String[nBacks][Areas][Levels];
     public static boolean[][][] mnBackAchievement = new boolean[nBacks][Areas][Levels];
 
-    public static int[] increaseNback = new int[nBacks];
-    public static int[] PlayResult = new int[nBacks];
+    public static int[] increaseNback = new int[nBacks+1];
+    public static int[] PlayResult = new int[nBacks+1];
 
     //public static boolean[][] nBackAchievementOnServer = new boolean[nBacks][Areas];
     //boolean ShowGlobalAchievemwntClicked = false;
@@ -148,9 +148,10 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     int random_nbr = -1;
     int sound_id = -1;
     int nBack = 2;
-    int nBackWhenPlaying = 2;
+    int nBackWhenPlaying = 0;
     int NbrOfPictures;
     int NbrOfPictures_old;
+
     public static final int PictureSteps = 31;
     int NumberOfPicturesToShow = PictureSteps;
     boolean ClickedPic = false;
@@ -166,7 +167,9 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public static int[] NewArray;
 
+    @SuppressWarnings("unchecked")
     private  List<Integer> myVisualList = new ArrayList();
+    @SuppressWarnings("unchecked")
     private  List<Integer> mySoundList = new ArrayList();
 
     GridView gridview;
@@ -197,7 +200,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     //TODO make sure to use infinite_laughs for release
     // SKU for our subscription (infinite gas)
-    static final String SKU_INFINITE_LAUGH = "infinite_laughs";
+    //static final String SKU_INFINITE_LAUGH = "infinite_laughs";
     static final String SKU_INFINITE_GAS_MONTHLY = "infinite_gas_monthly";
     static final String SKU_INFINITE_GAS_YEARLY = "infinite_gas_yearly";
 
@@ -399,23 +402,21 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         gridview.setAdapter(new ImageAdapter(this, NbrOfPictures, picturewidth));
 
-        boolean ReteThis = true;
 
-        if (ReteThis) {
-            if (ENABLE_LOGS) Log.v("Pete", "testing rate my app.....");
-            //RateMeMaybe.resetData(this);
-            RateMeMaybe rmm = new RateMeMaybe(this);
-            rmm.setPromptMinimums(10, 2, 5, 2);
-            //rmm.setPromptMinimums(0, 0, 0, 0);
-            rmm.setRunWithoutPlayStore(true);
-            rmm.setAdditionalListener(this);
-            rmm.setDialogMessage("You seem to like this app, "
-                    + "since you have already used it %totalLaunchCount% times! "
-                    + "It would be great if you took a moment to rate it.");
-            rmm.setDialogTitle("Rate this app");
-            rmm.setPositiveBtn("Yes!");
-            rmm.run();
-        }
+        if (ENABLE_LOGS) Log.v("Pete", "testing rate my app.....");
+        //RateMeMaybe.resetData(this);
+        RateMeMaybe rmm = new RateMeMaybe(this);
+        rmm.setPromptMinimums(10, 2, 5, 2);
+        //rmm.setPromptMinimums(0, 0, 0, 0);
+        rmm.setRunWithoutPlayStore(true);
+        rmm.setAdditionalListener(this);
+        rmm.setDialogMessage("You seem to like this app, "
+                + "since you have already used it %totalLaunchCount% times! "
+                + "It would be great if you took a moment to rate it.");
+        rmm.setDialogTitle("Rate this app");
+        rmm.setPositiveBtn("Yes!");
+        rmm.run();
+
     }
 
     private void requestNewInterstitial() {
@@ -492,14 +493,16 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         InitAll();
         setWaitScreen(false);
 
+        /*
         for(int l=0; l<GamePointsLevel.length; l++) {
             GamePointsLevel[l][0] = 0;
             GamePointsLevel[l][1] = 0;
             round = 0;
         }
+        */
 
         if(!manualmode){
-            InitPlayModeParam();
+            //InitPlayModeParam();
             nBack = 1;
             NbrOfPictures = 9;
 
@@ -620,8 +623,16 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public void Start(View arg0){
         if (ENABLE_LOGS) Log.d("Pete", "Start...");
+        mTracker.send(new HitBuilders.EventBuilder().setCategory("Action").setAction("Start Button Pressed").build());
 
-        nBackWhenPlaying = 2;
+        nBackWhenPlaying = nBack;
+
+        for(int l=0; l<GamePointsLevel.length; l++) {
+            GamePointsLevel[l][0] = 0;
+            GamePointsLevel[l][1] = 0;
+            round = 0;
+        }
+
 
         if(mInterstitialAd!=null) {
             if (mInterstitialAd.isLoaded()) {
@@ -686,17 +697,12 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             FontSize = 16;
         }
 
-        TextHeader = (TextView)findViewById(R.id.headertext);
-        TextHeader.setTextSize(TypedValue.COMPLEX_UNIT_DIP, FontSize);
-        TextHeader.setTypeface(TextHeader.getTypeface(), Typeface.BOLD);
-        TextHeader.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
-        TextHeader.setTextColor(Color.WHITE);
-        String message = "Player: " + playername + "\n" + "Area: " + NbrOfPictures + " nBack: " + String.valueOf(nBack) + (manualmode ? " ManualMode" : " PlayMode");
-        TextHeader.setText(message);
+        SetHeader(nBack);
     }
 
     public void Stop(View arg0){
         if(ENABLE_LOGS) Log.v("Pete", "Stop clicked...");
+        mTracker.send(new HitBuilders.EventBuilder().setCategory("Action").setAction("Stop Button Pressed").build());
 
         findViewById(R.id.undergrid).setVisibility(View.GONE);
 
@@ -708,11 +714,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         InitPlayModeParam();
 
+        nBackWhenPlaying = 0;
         //PrintLists();
     }
 
     public void Restart(View arg0){
         if(ENABLE_LOGS) Log.v("Pete", "Restart clicked...");
+        mTracker.send(new HitBuilders.EventBuilder().setCategory("Action").setAction("Restart Button Pressed").build());
 
         for(int l=0; l<mImageViews.length; l++) {
             mImageViews[l] = null;
@@ -776,6 +784,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public void Info(View arg0) {
         if(ENABLE_LOGS) Log.v("Pete", "Info clicked...");
+        mTracker.send(new HitBuilders.EventBuilder().setCategory("Action").setAction("Info Button Pressed").build());
+
 
         //SetAchievement(nBack, areasizeInt, _50PERCENT);
         //DatabaseHandler db = new DatabaseHandler(this);
@@ -800,7 +810,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public void Settings(View arg0) {
         if(ENABLE_LOGS) Log.v("Pete", "Settings clicked...");
-        mTracker.send(new HitBuilders.EventBuilder().setCategory("Action").setAction("Settings").build());
+        mTracker.send(new HitBuilders.EventBuilder().setCategory("Action").setAction("Settings Button Pressed").build());
 
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
@@ -828,6 +838,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public void ChartButtonClicked(View view) {
         if(ENABLE_LOGS) Log.v("Pete", "ChartButtonClicked...");
+        mTracker.send(new HitBuilders.EventBuilder().setCategory("Action").setAction("Chart Button Pressed").build());
 
         Intent intent = new Intent(this, ChartActivity.class);
         startActivity(intent);
@@ -877,7 +888,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void ShowRedTimer(long startfromthis_ms) {
-        if(ENABLE_LOGS) Log.v("Pete", "In ShowRedTimer...");
+        if(ENABLE_LOGS) Log.v("Pete", "In ShowRedTimer - nBack: " + nBack);
 
         NumberOfPicturesToShow-=1;
 
@@ -914,12 +925,17 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 SetAchievement(nBack, areasizeInt, _100PERCENT);
             }
 
+            if(ENABLE_LOGS) Log.v("Pete", "Before: increaseNback["+nBack+"]: " + increaseNback[nBack]);
+            if(ENABLE_LOGS) Log.v("Pete", "Before: PlayResult["+nBack+"]: " + PlayResult[nBack]);
+
             if(!manualmode) {
                 //We Play only once the first level
                 if(nBack==1)
                     increaseNback[nBack]++;
 
                 increaseNback[nBack]++;
+
+                if(ENABLE_LOGS) Log.v("Pete", "After: increaseNback["+nBack+"]: " + increaseNback[nBack]);
 
                 if (ResultPercent>=50){
                     //We Play only once the first level
@@ -928,10 +944,12 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
                     PlayResult[nBack]++;
                     round++;
+
+                    if(ENABLE_LOGS) Log.v("Pete", "After: PlayResult["+nBack+"]: " + PlayResult[nBack]);
                 }
             }
 
-            ShowPopUp_OK(true);
+            ShowPopUp_OK();
             SetInitUI();
             InitAll();
 
@@ -1047,7 +1065,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void ContinuePlayingTimer(long startfromthis_ms) {
-        if(ENABLE_LOGS) Log.v("Pete", "In ContinuePlayingTimer...");
+        if(ENABLE_LOGS) Log.v("Pete", "In ContinuePlayingTimer - nBack: " + nBack);
         ContinuePlayingTimer =  true;
 
         ContinuePlayingTimerT = new CountDownTimer(startfromthis_ms, 1000) {
@@ -1057,8 +1075,12 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             }
 
             public void onFinish() {
-                if(ENABLE_LOGS) Log.v("Pete", "ContinuePlayingTimer onFinish...");
+                if(ENABLE_LOGS) Log.v("Pete", "ContinuePlayingTimer onFinish  - nBack: " + nBack);
                 ContinuePlayingTimer = false;
+
+                nBack = nBackWhenPlaying;
+                SetHeader(nBack);
+                ShowToastnBack();
 
                 SetInitUI();
 
@@ -1067,8 +1089,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 findViewById(R.id.linearview).setVisibility(View.VISIBLE);
                 findViewById(R.id.undergrid).setVisibility(View.VISIBLE);
 
-                nBack = nBackWhenPlaying;
-                ShowToastnBack();
+
             }
         }.start();
     }
@@ -1414,7 +1435,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         WantToBuy = true;
     }
 
-    public void ShowPopUp_OK(final boolean callShow){
+    public void ShowPopUp_OK(){
         if (ENABLE_LOGS) Log.d("Pete", "ShowPopUp_OK....");
 
         ContinuePlaying = false;
@@ -1527,7 +1548,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         message = " Result %: " + ResultPercent + " ";
         rowTextView8.setText(message);
         rowTextView8.setGravity(Gravity.CENTER);
-        rowTextView8.setTextColor(Color.WHITE);
+        rowTextView8.setTextColor(Color.RED);
         rowTextView8.setBackgroundColor(TextBackRoundColour);
         rowTextView8.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeResult);
         rowTextView8.setTypeface(rowTextView7.getTypeface(), Typeface.BOLD);
@@ -1558,10 +1579,17 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                     if(nBack==1)
                         message = " Nice Work - nBack increased! Points from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
 
-                    nBack++;
-                    nBackWhenPlaying = nBack;
-                    ContinuePlaying = true;
-                    round = 0;
+                    if(nBack<nBacks) {
+                        nBack++;
+                        nBackWhenPlaying = nBack;
+                        ContinuePlaying = true;
+                        round = 0;
+                    }
+                    else{
+                        message = " Congratulation! Maximum Level Reached! Points from this level: " + GamePointsLevel[nBack][1] + " TotalPoints: " + GetPlayerPoint() + " ";
+                        mTracker.send(new HitBuilders.EventBuilder().setCategory("Action").setAction("Game Played Trough!!").build());
+                    }
+
                 } else {
                     message = " Game over now! Points from this level: " + GamePointsLevel[nBack][1] + " TotalPoints: " + GetPlayerPoint() + " ";
 
@@ -1989,6 +2017,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void BuyButton(View arg0) {
+        mTracker.send(new HitBuilders.EventBuilder().setCategory("Action").setAction("Buy Button Pressed").build());
         ShowPopUp_Buy();
     }
 
@@ -2272,6 +2301,18 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         }
 
         return FontSize;
+    }
+
+    public void SetHeader(int n_back){
+        int FontSize = 12;
+
+        TextHeader = (TextView)findViewById(R.id.headertext);
+        TextHeader.setTextSize(TypedValue.COMPLEX_UNIT_DIP, FontSize);
+        TextHeader.setTypeface(TextHeader.getTypeface(), Typeface.BOLD);
+        TextHeader.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+        TextHeader.setTextColor(Color.WHITE);
+        String message = "Player: " + playername + "\n" + "Area: " + NbrOfPictures + " nBack: " + String.valueOf(n_back) + (manualmode ? " ManualMode" : " PlayMode");
+        TextHeader.setText(message);
     }
 
 
