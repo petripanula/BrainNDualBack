@@ -97,6 +97,55 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.close();
     }
 
+    public int PlayTimeToday (){
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "in PlayTimeToday: ");
+
+        int returnint = 0;
+        String date;
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM");
+        Date resultdate = new Date(System.currentTimeMillis());
+        date = sdf.format(resultdate);
+
+        String selectQuery = "SELECT * FROM " + TABLE_PLAYTIME;
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        int[] time = new int[cursor.getCount()];
+        int[] id = new int[cursor.getCount()];
+        String[] dbdate = new String[cursor.getCount()];
+
+        int i = 0;
+
+        while (cursor.moveToNext()) {
+
+            id[i] = cursor.getInt(0);
+            time[i] = cursor.getInt(2);
+            dbdate[i] = cursor.getString(3);
+
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getInt(0) id: " + cursor.getInt(0));
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getInt(2) timr: " + cursor.getInt(2));
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getString(3) dbdate: " + cursor.getString(3));
+
+            if(cursor.getString(3).equals(date)){
+                if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "Match");
+
+                returnint = cursor.getInt(2);
+
+                cursor.close();
+                //db.close();
+                return returnint;
+            }
+
+            i++;
+        }
+
+        cursor.close();
+        //db.close();
+        return returnint;
+    }
+
     public int[] getAllTimes (String date){
         if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "in getAllTimes: " + date);
 

@@ -63,6 +63,7 @@ import com.google.example.games.basegameutils.BaseGameActivity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 
 public class MainActivity extends BaseGameActivity implements NumberPicker.OnValueChangeListener,RateMeMaybe.OnRMMUserChoiceListener,IabBroadcastReceiver.IabBroadcastListener {
@@ -93,6 +94,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     //public static int GamePoints = 0;
     public static int[][] GamePointsLevel = new int[nBacks+1][2];
     int round;
+    int timestart;
+    int timeend;
 
     int Language;
     int Soundtheme;
@@ -624,6 +627,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             InitPlayModeParam();
             ShowToastnBack();
         }
+
+        timestart = (int)((System.currentTimeMillis()/1000)%3600);
     }
 
     public void Start(View arg0){
@@ -681,26 +686,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         findViewById(R.id.horizontalview).setVisibility(View.VISIBLE);
         findViewById(R.id.linearview).setVisibility(View.GONE);
         findViewById(R.id.undergrid).setVisibility(View.GONE);
-
-        int FontSize = 12;
-
-        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
-                Configuration.SCREENLAYOUT_SIZE_NORMAL){
-            if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ScoresActivity SCREENLAYOUT_SIZE_NORMAL...");
-            FontSize = 12;
-        }
-
-        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
-                Configuration.SCREENLAYOUT_SIZE_LARGE){
-            if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ScoresActivity SCREENLAYOUT_SIZE_LARGE...");
-            FontSize = 14;
-        }
-
-        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
-                Configuration.SCREENLAYOUT_SIZE_XLARGE){
-            if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ScoresActivity SCREENLAYOUT_SIZE_XLARGE...");
-            FontSize = 16;
-        }
 
         SetHeader(nBack);
     }
@@ -811,12 +796,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         //CollectAchievementPoints();
 
+        /*
         DatabaseHandler db = new DatabaseHandler(this);
         db.insertOrUpdate(playername,10);
         db.close();
-
-        //Intent intent = new Intent(this, InfoActivity.class);
-        //startActivity(intent);
+        */
+        Intent intent = new Intent(this, InfoActivity.class);
+        startActivity(intent);
     }
 
     public void Settings(View arg0) {
@@ -1100,7 +1086,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 findViewById(R.id.linearview).setVisibility(View.VISIBLE);
                 findViewById(R.id.undergrid).setVisibility(View.VISIBLE);
 
-
+                timestart = (int)((System.currentTimeMillis()/1000)%3600);
             }
         }.start();
     }
@@ -1448,6 +1434,17 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public void ShowPopUp_OK(){
         if (ENABLE_LOGS) Log.d("Pete", "ShowPopUp_OK....");
+
+        //Mark the endtime
+        timeend = (int)((System.currentTimeMillis()/1000)%3600);
+        int difference = (3600 + timeend - timestart)%3600;
+
+        if(nBack>1) {
+            DatabaseHandler db = new DatabaseHandler(this);
+            db.insertOrUpdate(playername, difference);
+            db.close();
+            Toast.makeText(this, "Seconds to DB: " + difference, Toast.LENGTH_LONG).show();
+        }
 
         ContinuePlaying = false;
 
@@ -2315,13 +2312,19 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public void SetHeader(int n_back){
         int FontSize = 16;
+        int playedToday = 0;
+
+        DatabaseHandler db = new DatabaseHandler(this);
+        playedToday = db.PlayTimeToday();
+        playedToday = (int) playedToday / 60;
+        db.close();
 
         TextHeader = (TextView)findViewById(R.id.headertext);
         TextHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         TextHeader.setTypeface(TextHeader.getTypeface(), Typeface.BOLD);
         TextHeader.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
         TextHeader.setTextColor(Color.WHITE);
-        String message = "Player: " + playername + "\n" + "Area: " + NbrOfPictures + " nBack: " + String.valueOf(n_back) + (manualmode ? " ManualMode" : " PlayMode");
+        String message = "Player: " + playername + " - Playtime today: " + playedToday + " min" + "\n" + "Area: " + NbrOfPictures + " nBack: " + String.valueOf(n_back) + (manualmode ? " ManualMode" : " PlayMode");
         TextHeader.setText(message);
     }
 
