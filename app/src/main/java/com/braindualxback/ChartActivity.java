@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -64,6 +65,11 @@ public class ChartActivity extends AppCompatActivity {
         testint = Integer.parseInt(preferences.getIntString("testint"));
 
         if (MainActivity.ENABLE_LOGS) Log.v("Pete", "testint: " + testint);
+
+        DisplayMetrics metrics = this.getResources().getDisplayMetrics();
+        float HeaderFont = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 25, metrics);
+        float AxisFont = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 22, metrics);
+        float AnnotatFont = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 20, metrics);
 
         DbSize = db.getDBsize_game();
         String HTMLsourceString = "<font color=#00FF00><b> Nothing to show here yet. Do some training in PlayMode! </b></font>";
@@ -128,6 +134,7 @@ public class ChartActivity extends AppCompatActivity {
             renderer.setPointStyle(PointStyle.CIRCLE);
             renderer.setPointStrokeWidth(3);
 
+
             XYMultipleSeriesRenderer mRenderer = new XYMultipleSeriesRenderer();
             //XYSeriesRenderer mRenderer = new XYSeriesRenderer();
 
@@ -139,6 +146,8 @@ public class ChartActivity extends AppCompatActivity {
             mRenderer.setPanEnabled(true, false);
             mRenderer.setPanLimits(new double[]{0, Hiscores_game.length, 0, 0});
 
+            mRenderer.setShowLegend(false);
+
             mRenderer.setYAxisMax(biggest_value + 10);
             mRenderer.setYAxisMin(0);
             mRenderer.setShowGrid(false); // we show the grid
@@ -148,15 +157,20 @@ public class ChartActivity extends AppCompatActivity {
             //mRenderer.setAxisTitleTextSize(50);
             mRenderer.setZoomEnabled(true, false);
             mRenderer.setChartTitle("PlayMode progress (X-Date,Y-Points)");
-            mRenderer.setChartTitleTextSize(60);
+            mRenderer.setChartTitleTextSize(HeaderFont);
 
-            mRenderer.setAxisTitleTextSize(60);
+            mRenderer.setYLabelsAlign(Paint.Align.RIGHT);
+
+            mRenderer.setAxisTitleTextSize(AxisFont);
             //mRenderer.setXTitle("Date");
             //mRenderer.setYTitle("Points");
 
-            mRenderer.setLabelsTextSize(60);
+            mRenderer.setLabelsTextSize(AxisFont);
 
-            mRenderer.setXLabelsAngle(90);
+            if(DbSize>5)
+                mRenderer.setXLabelsAngle(90);
+
+            mRenderer.setMargins(new int[] { 60, 60, 10, 60 });  //Top, Left, Bottom, Right
 
             //SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
             SimpleDateFormat sdf = new SimpleDateFormat("dd-MM");
@@ -167,7 +181,7 @@ public class ChartActivity extends AppCompatActivity {
                     Log.v("Pete", "add - Hiscores_game: " + Integer.parseInt(Hiscores_game[j]));
                 series.add(hour++, Integer.parseInt(Hiscores_game[j]));
                 series.addAnnotation(Hiscores_game[j], j, Integer.parseInt(Hiscores_game[j]) + 5);
-                renderer.setAnnotationsTextSize(50);
+                renderer.setAnnotationsTextSize(AnnotatFont);
                 renderer.setAnnotationsColor(Color.RED);
                 Date resultdate = new Date(Dates_game[j]);
                 mRenderer.addXTextLabel(j, sdf.format(resultdate));

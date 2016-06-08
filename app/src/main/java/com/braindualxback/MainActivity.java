@@ -52,9 +52,12 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.GamesActivityResultCodes;
 import com.google.android.gms.games.Player;
+import com.google.android.gms.games.achievement.Achievement;
+import com.google.android.gms.games.achievement.Achievements;
 import com.google.example.games.basegameutils.BaseGameActivity;
 
 import java.util.ArrayList;
@@ -81,8 +84,10 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public static final int _100PERCENT = 2;
 
     public static final int PROPABILITY = 5;
+    int CollectedXPpoints = 0;
 
     String GameLeaderBoard;
+    String AchievementBoard;
     boolean PushLeaderScore = false;
     boolean ContinuePlaying = true;
     //public static int GamePoints = 0;
@@ -804,8 +809,14 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         Games.Leaderboards.submitScore(mHelper.getApiClient(), GameLeaderBoard, GamePoints);
         */
 
-        Intent intent = new Intent(this, InfoActivity.class);
-        startActivity(intent);
+        //CollectAchievementPoints();
+
+        DatabaseHandler db = new DatabaseHandler(this);
+        db.insertOrUpdate(playername,10);
+        db.close();
+
+        //Intent intent = new Intent(this, InfoActivity.class);
+        //startActivity(intent);
     }
 
     public void Settings(View arg0) {
@@ -895,7 +906,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         int FontSize = ReturnFontSize();
 
         TextHeader = (TextView)findViewById(R.id.undergrid);
-        TextHeader.setTextSize(TypedValue.COMPLEX_UNIT_DIP, FontSize);
+        TextHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         TextHeader.setTypeface(TextHeader.getTypeface(), Typeface.BOLD);
         TextHeader.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
         TextHeader.setTextColor(Color.WHITE);
@@ -1763,14 +1774,12 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         }
 
         //For LeaderBoard
-
         if(PushLeaderScore) {
             Games.Leaderboards.submitScore(mHelper.getApiClient(), GameLeaderBoard, GetPlayerPoint());
             PushLeaderScore = false;
         }
 
-        //From new Doc.... No need for callbacks etc???
-        //Games.Achievements.unlock(mHelper.getApiClient(), nBackAchievementID[0][0]);
+        CollectAchievementPoints();
     }
 
     public void SetStringsArrays(){
@@ -1853,6 +1862,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         nBackAchievementID[5][3][2] = getString(R.string.achievement_nback_6_area_5x5_result_100);
 
         GameLeaderBoard =  getString(R.string.leaderboard_global_nback_3x3_playmode_hiscores);
+        AchievementBoard = getString(R.string.leaderboard_achievement_leaderboard);
     }
 
     public void InitPlayModeParam(){
@@ -2304,10 +2314,10 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void SetHeader(int n_back){
-        int FontSize = 12;
+        int FontSize = 16;
 
         TextHeader = (TextView)findViewById(R.id.headertext);
-        TextHeader.setTextSize(TypedValue.COMPLEX_UNIT_DIP, FontSize);
+        TextHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         TextHeader.setTypeface(TextHeader.getTypeface(), Typeface.BOLD);
         TextHeader.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
         TextHeader.setTextColor(Color.WHITE);
@@ -2315,6 +2325,39 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         TextHeader.setText(message);
     }
 
+    public void CollectAchievementPoints() {
+        if(ENABLE_LOGS) Log.v("Pete", "CollectAchievementPoints....");
 
+        //Here we should push LeaderScores, Achievements and Events
+        if (!isSignedIn()) {
+            // can't push to the cloud, so save locally
+            if(ENABLE_LOGS) Log.v("Pete", "CollectAchievementPoints - not isSignedIn");
+            return;
+        }
+
+        boolean fullLoad = false;  // set to 'true' to reload all achievements (ignoring cache)
+
+        // load achievements
+        Games.Achievements.load(mHelper.getApiClient(), fullLoad).setResultCallback(new ResultCallback<Achievements.LoadAchievementsResult>() {
+            @Override
+            public void onResult(Achievements.LoadAchievementsResult loadAchievementsResult) {
+                for (Achievement achievement : loadAchievementsResult.getAchievements()) {
+
+                    // here you can work with the achievement objects
+                    // ...
+                    boolean unlocked = (achievement.getState() == Achievement.STATE_UNLOCKED);
+
+                    if (unlocked) {
+                        if (MainActivity.ENABLE_LOGS)Log.v("Pete", "Value: " + achievement.getXpValue());
+                        CollectedXPpoints = CollectedXPpoints + (int)achievement.getXpValue();
+
+                    }
+                }
+
+                if(CollectedXPpoints>0)
+                    Games.Leaderboards.submitScore(mHelper.getApiClient(), AchievementBoard, CollectedXPpoints);
+            }
+        });
+    }
 
 }

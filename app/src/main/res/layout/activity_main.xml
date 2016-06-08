@@ -23,7 +23,6 @@
         android:textIsSelectable="true"
         />
 
-
     <GridView xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/gridview"
         android:layout_width="fill_parent"
