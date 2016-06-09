@@ -257,26 +257,8 @@
             />
 
         <ImageButton
-            android:id="@+id/restart"
-            android:layout_toLeftOf="@+id/GlobalHiscores"
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:scaleType="fitCenter"
-            android:adjustViewBounds="true"
-            android:layout_gravity="bottom"
-            android:background="@drawable/button_memory_page"
-            android:paddingBottom="5dip"
-            android:paddingTop="5dip"
-            android:layout_marginBottom="5dip"
-            android:layout_marginLeft="5dip"
-            android:layout_marginRight="5dip"
-            android:onClick="Restart"
-            android:src="@drawable/restart"
-            />
-
-        <ImageButton
             android:id="@+id/signin"
-            android:layout_toLeftOf="@+id/restart"
+            android:layout_toLeftOf="@+id/GlobalHiscores"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
             android:scaleType="fitCenter"
@@ -311,8 +293,26 @@
         />
 
         <ImageButton
-            android:id="@+id/buy"
+            android:id="@+id/time_history_button"
             android:layout_toLeftOf="@+id/chart_button"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:layout_gravity="bottom"
+            android:background="@drawable/button_memory_page"
+            android:paddingBottom="5dip"
+            android:paddingTop="5dip"
+            android:layout_marginBottom="5dip"
+            android:layout_marginLeft="5dip"
+            android:layout_marginRight="5dip"
+            android:onClick="TimeHistoryActivityClicked"
+            android:src="@drawable/timebackhistory2"
+            />
+
+        <ImageButton
+            android:id="@+id/buy"
+            android:layout_toLeftOf="@+id/time_history_button"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
             android:scaleType="fitCenter"
@@ -327,6 +327,25 @@
             android:onClick="BuyButton"
             android:src="@drawable/buy"
             />
+
+        <ImageButton
+            android:id="@+id/restart"
+            android:layout_toLeftOf="@+id/buy"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:layout_gravity="bottom"
+            android:background="@drawable/button_memory_page"
+            android:paddingBottom="5dip"
+            android:paddingTop="5dip"
+            android:layout_marginBottom="5dip"
+            android:layout_marginLeft="5dip"
+            android:layout_marginRight="5dip"
+            android:onClick="Restart"
+            android:src="@drawable/restart"
+            />
+
 
     </LinearLayout>
     </HorizontalScrollView>

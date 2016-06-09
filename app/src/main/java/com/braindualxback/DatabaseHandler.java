@@ -98,12 +98,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public int PlayTimeToday (){
-        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "in PlayTimeToday: ");
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "in PlayTimeToday");
 
         int returnint = 0;
         String date;
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM");
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
         Date resultdate = new Date(System.currentTimeMillis());
         date = sdf.format(resultdate);
 
@@ -175,7 +175,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getString(3) dbdate: " + cursor.getString(3));
 
             if(cursor.getString(3).equals(date)){
-                if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "Match");
+                if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "Match - " + cursor.getString(3) + "==" + date);
                 returnint[0] = cursor.getInt(0);
                 returnint[1] = cursor.getInt(2);
 
@@ -192,6 +192,36 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return returnint;
     }
 
+    public void InitPlayTimeDB(){
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "in InitPlayTimeDB");
+
+        String playdate;
+        long days = 0;
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+
+        //One year
+        for(int i=0;i<365;i++) {
+            Date resultdate = new Date(System.currentTimeMillis() + days );
+            playdate = sdf.format(resultdate);
+            days = days + 86400000;
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "playdate: " + playdate);
+
+            values.put(PLAYER_NAME,"NA");
+            values.put(PLAYTIME, 0);
+            values.put(DATE_SHORT, playdate); // date
+
+            int id = (int) db.insertWithOnConflict(TABLE_PLAYTIME, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "insertOrUpdate - id: " + id);
+        }
+
+        db.close();
+    }
+
     public void insertOrUpdate(String Player, int playtime){
 
         if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "in insertOrUpdate - Player: " + Player + " playtime: " + playtime);
@@ -206,7 +236,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(PLAYER_NAME,Player);
         values.put(PLAYTIME, playtime);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM");
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
         Date resultdate = new Date(System.currentTimeMillis());
         playdate = sdf.format(resultdate);
         if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "in insertOrUpdate - playdate: " + playdate);
@@ -454,6 +484,90 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         arrayObjects [2] = score;
 
         return arrayObjects;
+    }
+
+    public Object[] getAll_times_for_chart() {
+
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "getAll_times_for_chart()...");
+
+        Object[] arrayObjects = new Object[3];
+        // Select All Query
+        String selectQuery = "SELECT * FROM " + TABLE_PLAYTIME;
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getCount(): " + cursor.getCount());
+        // looping through all rows and adding to list
+
+        int i = 0;
+
+        String[] player = new String[cursor.getCount()];
+        int[] playtime = new int[cursor.getCount()];
+        String[] date = new String[cursor.getCount()];
+
+        while (cursor.moveToNext()) {
+
+            player[i] = cursor.getString(1);
+            playtime[i] = (int)cursor.getInt(2)/60;
+            date[i] = cursor.getString(3);
+
+            /*
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getString(1) player: " + cursor.getString(1));
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getInt(2) playtime: " + cursor.getInt(2));
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getString(3) date: " + cursor.getString(3));
+            */
+
+            i++;
+
+        }
+        cursor.close();
+        db.close();
+
+        arrayObjects [0] = player;
+        arrayObjects [1] = playtime;
+        arrayObjects [2] = date;
+
+        return arrayObjects;
+    }
+
+
+    public int get_number_of_days() {
+
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "get_number_of_days()...");
+
+        String date;
+        // Select All Query
+        String selectQuery = "SELECT * FROM " + TABLE_PLAYTIME;
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getCount(): " + cursor.getCount());
+        // looping through all rows and adding to list
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+        Date resultdate = new Date(System.currentTimeMillis());
+        date = sdf.format(resultdate);
+
+        if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "Looking for: " + date);
+
+        int i = 0;
+
+        while (cursor.moveToNext()) {
+            i++;
+
+            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getString(3): " + cursor.getString(3));
+
+            if(cursor.getString(3).equals(date)) {
+                if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "Match - return i: " + i);
+                return i+2;
+            }
+        }
+        cursor.close();
+        db.close();
+
+        return 0;
     }
 
 }

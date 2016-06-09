@@ -25,4 +25,6 @@
     <string name="content_desc_gas_gauge_indicator">Gas gauge indicator</string>
     <string name="content_desc_free_vs_premium_indicator">Free or Premium Image Indicator</string>
     <string name="banner_ad_unit_id">ca-app-pub-7557334974231969/5789608935</string>
+
+    <string name="title_activity_time_history">TimeHistoryActivity</string>
 </resources>

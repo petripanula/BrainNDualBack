@@ -31,11 +31,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 
-public class ChartActivity extends AppCompatActivity {
+public class TimeHistoryActivity extends AppCompatActivity {
 
-    public static String[] Hiscores_game;
-    public static String[] Players_game;
-    public static long[] Dates_game;
+    public static int[] Time_game;
+    public static String[] Players;
+    public static String[] Dates_game;
 
     SecurePreferences preferences;
     int testint;
@@ -46,7 +46,7 @@ public class ChartActivity extends AppCompatActivity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
 
-        if (MainActivity.ENABLE_LOGS) Log.d("Pete", "ChartActivity onCreate...");
+        if (MainActivity.ENABLE_LOGS) Log.d("Pete", "TimeHistoryActivity onCreate...");
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
@@ -57,10 +57,10 @@ public class ChartActivity extends AppCompatActivity {
 
         getSupportActionBar().hide();
 
-        setContentView(R.layout.activity_chart);
+        setContentView(R.layout.activity_time_history);
 
         DatabaseHandler db = new DatabaseHandler(this);
-        Object[] arrayObjects_game = db.getAll_game_for_chart();
+        Object[] arrayObjects_game = db.getAll_times_for_chart();
 
         preferences = new SecurePreferences(this, "my-preferences", "SometopSecretKey1235", true);
         testint = Integer.parseInt(preferences.getIntString("testint"));
@@ -72,7 +72,7 @@ public class ChartActivity extends AppCompatActivity {
         float AxisFont = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 22, metrics);
         float AnnotatFont = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 20, metrics);
 
-        DbSize = db.getDBsize_game();
+        DbSize = db.get_number_of_days();
         String HTMLsourceString = "<font color=#00FF00><b> Nothing to show here yet. Do some training in PlayMode! </b></font>";
         boolean DoNotShowCraph;
 
@@ -120,19 +120,19 @@ public class ChartActivity extends AppCompatActivity {
             // add the textview to the linearlayout
             ll.addView(ManualModeHeader);
         }else {
-            Hiscores_game = new String[db.getDBsize_game()];
-            Players_game = new String[db.getDBsize_game()];
-            Dates_game = new long[db.getDBsize_game()];
+            Players = new String[DbSize];
+            Dates_game = new String[DbSize];
+            Time_game = new int[DbSize];
 
-            Players_game = (String[]) arrayObjects_game[0];
-            Dates_game = (long[]) arrayObjects_game[1];
-            Hiscores_game = (String[]) arrayObjects_game[2];
+            Players = (String[]) arrayObjects_game[0];
+            Time_game = (int[]) arrayObjects_game[1];
+            Dates_game = (String[]) arrayObjects_game[2];
 
             int biggest_value = 0;
 
-            for (String aHiscores_game : Hiscores_game) {
-                if (Integer.parseInt(aHiscores_game) > biggest_value) {
-                    biggest_value = Integer.parseInt(aHiscores_game);
+            for(int l=0; l<DbSize; l++) {
+                if (Time_game[l] > biggest_value) {
+                    biggest_value = Time_game[l];
                 }
             }
 
@@ -158,16 +158,16 @@ public class ChartActivity extends AppCompatActivity {
             mRenderer.setMarginsColor(Color.argb(0x00, 0xff, 0x00, 0x00)); // transparent margins
             // Disable Pan on two axis
             mRenderer.setPanEnabled(true, false);
-            mRenderer.setPanLimits(new double[]{0, Hiscores_game.length, 0, 0});
+            mRenderer.setPanLimits(new double[]{0, DbSize, 0, 0});
             mRenderer.setShowLegend(false);
-            mRenderer.setYAxisMax(biggest_value + 10);
+            mRenderer.setYAxisMax(biggest_value + 5);
             mRenderer.setYAxisMin(0);
             mRenderer.setShowGrid(false); // we show the grid
             mRenderer.setBarSpacing(1);
             mRenderer.setXAxisMin(-0.5);
             mRenderer.setInScroll(true);
             mRenderer.setZoomEnabled(true, false);
-            mRenderer.setChartTitle("PlayMode progress (X-Date,Y-Points)");
+            mRenderer.setChartTitle("Playtime history in minutes (X-Date,Y-Time)");
             mRenderer.setChartTitleTextSize(HeaderFont);
             mRenderer.setYLabelsAlign(Paint.Align.RIGHT);
             mRenderer.setAxisTitleTextSize(AxisFont);
@@ -186,18 +186,24 @@ public class ChartActivity extends AppCompatActivity {
             mRenderer.setMargins(new int[] { Top, Left, Bottom, Right });
 
             //SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM");
+            //SimpleDateFormat sdf = new SimpleDateFormat("dd-MM");
 
             int hour = 0;
-            for (int j = 0; j < Hiscores_game.length; j++) {
+            for (int j = 0; j < DbSize; j++) {
                 if (MainActivity.ENABLE_LOGS)
-                    Log.v("Pete", "add - Hiscores_game: " + Integer.parseInt(Hiscores_game[j]));
-                series.add(hour++, Integer.parseInt(Hiscores_game[j]));
-                series.addAnnotation(Hiscores_game[j], j, Integer.parseInt(Hiscores_game[j]) + 5);
+                    Log.v("Pete", "add - time: " + Time_game[j]);
+                series.add(hour++,  Time_game[j]);
+                series.addAnnotation(Integer.toString(Time_game[j]), j,  Time_game[j] + 1);
                 renderer.setAnnotationsTextSize(AnnotatFont);
-                renderer.setAnnotationsColor(Color.RED);
-                Date resultdate = new Date(Dates_game[j]);
-                mRenderer.addXTextLabel(j, sdf.format(resultdate));
+
+                if(Time_game[j]<20)
+                    renderer.setAnnotationsColor(Color.RED);
+                else
+                    renderer.setAnnotationsColor(Color.GREEN);
+
+                String ModDate = Dates_game[j].substring(0, Dates_game[j].length() - 5);
+                //Date resultdate = new Date(Dates_game[j]);
+                mRenderer.addXTextLabel(j, ModDate);
                 mRenderer.setXLabels(0);
             }
 
@@ -206,7 +212,7 @@ public class ChartActivity extends AppCompatActivity {
             //GraphicalView chartView = ChartFactory.getLineChartView(this, mseries, mRenderer);
             GraphicalView chartView = ChartFactory.getBarChartView(this, mseries, mRenderer, BarChart.Type.DEFAULT);
 
-            LinearLayout ll = (LinearLayout) findViewById(R.id.chart);
+            LinearLayout ll = (LinearLayout) findViewById(R.id.charttime);
 
             if (ll != null) {
                 ll.addView(chartView, 0);
@@ -240,13 +246,13 @@ public class ChartActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ChartActivity onResume...");
+        if(MainActivity.ENABLE_LOGS) Log.v("Pete", "TimeHistoryActivity onResume...");
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if(MainActivity.ENABLE_LOGS) Log.v("Pete", "ChartActivity onPause...");
+        if(MainActivity.ENABLE_LOGS) Log.v("Pete", "TimeHistoryActivity onPause...");
     }
 
 }

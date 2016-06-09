@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
@@ -60,7 +61,9 @@ import com.google.android.gms.games.achievement.Achievement;
 import com.google.android.gms.games.achievement.Achievements;
 import com.google.example.games.basegameutils.BaseGameActivity;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -75,6 +78,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     boolean DisableAdds = false;
     boolean RestartRequired = false;
+    int PlayDBInitialized = 0;
 
     public static final int nBacks = 6;
     public static final int Areas = 4;
@@ -268,6 +272,17 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         loadLocal();
 
+        if(PlayDBInitialized==0){
+            if(ENABLE_LOGS) Log.d(TAG, "PlayDBInitialize....");
+
+            DatabaseHandler db = new DatabaseHandler(this);
+            db.InitPlayTimeDB();
+            db.close();
+
+            PlayDBInitialized = 1;
+            saveLocal();
+        }
+
         if(ENABLE_LOGS) Log.d(TAG, "testint: " + testint);
 
         if(testint==666){
@@ -424,6 +439,11 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         rmm.setDialogTitle("Rate this app");
         rmm.setPositiveBtn("Yes!");
         rmm.run();
+
+        //Just Zero to DB...
+        //DatabaseHandler db = new DatabaseHandler(this);
+        //db.insertOrUpdate(playername, 0);
+        //db.close();
 
     }
 
@@ -778,10 +798,24 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
 
         //SetAchievement(nBack, areasizeInt, _50PERCENT);
-        //DatabaseHandler db = new DatabaseHandler(this);
-        //int ran = random.nextInt(35);
-        //db.addScore_game(playername,ran);
+        /*
+        DatabaseHandler db = new DatabaseHandler(this);
+        int ran = random.nextInt(1000);
+        db.addScore_game(playername,ran);
+        */
 
+        /*
+        //Just Zero to DB...
+        DatabaseHandler db = new DatabaseHandler(this);
+        db.InitPlayTimeDB();
+        db.close();
+        */
+
+        /*
+        DatabaseHandler db = new DatabaseHandler(this);
+        db.insertOrUpdate("Pete", 200);
+        db.close();
+        */
         /*
         gridview = (GridView) findViewById(R.id.gridview);
         int HorizontalSpacing = gridview.getHorizontalSpacing();
@@ -838,6 +872,14 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         mTracker.send(new HitBuilders.EventBuilder().setCategory("Action").setAction("Chart Button Pressed").build());
 
         Intent intent = new Intent(this, ChartActivity.class);
+        startActivity(intent);
+    }
+
+    public void TimeHistoryActivityClicked(View view) {
+        if(ENABLE_LOGS) Log.v("Pete", "TimeHistoryActivityClicked...");
+        mTracker.send(new HitBuilders.EventBuilder().setCategory("Action").setAction("Timer History Button Pressed").build());
+
+        Intent intent = new Intent(this, TimeHistoryActivity.class);
         startActivity(intent);
     }
 
@@ -1443,7 +1485,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             DatabaseHandler db = new DatabaseHandler(this);
             db.insertOrUpdate(playername, difference);
             db.close();
-            Toast.makeText(this, "Seconds to DB: " + difference, Toast.LENGTH_LONG).show();
+            //Toast.makeText(this, "Seconds to DB: " + difference, Toast.LENGTH_LONG).show();
         }
 
         ContinuePlaying = false;
@@ -1706,6 +1748,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         preferences = new SecurePreferences(this, "my-preferences", "SometopSecretKey1235", true);
 
         preferences.put("testint", String.valueOf(testint));
+        preferences.put("playdbinitialized", String.valueOf(PlayDBInitialized));
+
     }
 
     public void loadLocal() {
@@ -1715,8 +1759,10 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         preferences = new SecurePreferences(this, "my-preferences", "SometopSecretKey1235", true);
 
         testint = Integer.parseInt(preferences.getIntString("testint"));
+        PlayDBInitialized = Integer.parseInt(preferences.getIntString("playdbinitialized"));
 
         if (ENABLE_LOGS) Log.v("Pete", "loadLocal - testint: " + testint);
+        if (ENABLE_LOGS) Log.v("Pete", "loadLocal - PlayDBInitialized: " + PlayDBInitialized);
     }
 
     // Input area and nBack....
@@ -1887,9 +1933,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         }
 
         return points;
-
     }
-
 
     public void PlayClick() {
 
@@ -2311,8 +2355,21 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
     public void SetHeader(int n_back){
-        int FontSize = 16;
+        int FontSize = 12;
         int playedToday = 0;
+        String Player;
+        String HTMLsourceString;
+
+        if(playername.length()>18) {
+            Player = playername.substring(0, 15);
+            Player = Player + "...";
+        }else
+            Player = playername;
+
+        if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                Configuration.SCREENLAYOUT_SIZE_XLARGE){
+            FontSize = 16;
+        }
 
         DatabaseHandler db = new DatabaseHandler(this);
         playedToday = db.PlayTimeToday();
@@ -2324,8 +2381,15 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         TextHeader.setTypeface(TextHeader.getTypeface(), Typeface.BOLD);
         TextHeader.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
         TextHeader.setTextColor(Color.WHITE);
-        String message = "Player: " + playername + " - Playtime today: " + playedToday + " min" + "\n" + "Area: " + NbrOfPictures + " nBack: " + String.valueOf(n_back) + (manualmode ? " ManualMode" : " PlayMode");
-        TextHeader.setText(message);
+
+        //Less than 20min Played today
+        if(playedToday<20)
+            HTMLsourceString = "Player: " + Player + " - <font color=#FF30000><b>Training today: " + playedToday + " min</<b></font>" + "<br/>" + "Area: " + NbrOfPictures + " nBack: " + String.valueOf(n_back) + (manualmode ? " ManualMode" : " PlayMode");
+        else
+            HTMLsourceString = "Player: " + Player + " - <font color=#00FF00><b>Training today: " + playedToday + " min</<b></font>" + "<br/>" + "Area: " + NbrOfPictures + " nBack: " + String.valueOf(n_back) + (manualmode ? " ManualMode" : " PlayMode");
+
+        TextHeader.setText(Html.fromHtml(HTMLsourceString));
+
     }
 
     public void CollectAchievementPoints() {
