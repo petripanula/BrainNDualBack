@@ -661,6 +661,11 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             GamePointsLevel[l][0] = 0;
             GamePointsLevel[l][1] = 0;
             round = 0;
+
+            if (!manualmode) {
+                //Gamemode always starts from 1
+                nBack = 1;
+            }
         }
 
 

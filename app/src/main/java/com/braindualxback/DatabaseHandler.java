@@ -561,7 +561,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
             if(cursor.getString(3).equals(date)) {
                 if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "Match - return i: " + i);
-                return i+2;
+                return i;
             }
         }
         cursor.close();

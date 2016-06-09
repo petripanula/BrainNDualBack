@@ -8,8 +8,8 @@ android {
         applicationId "com.braindualxback"
         minSdkVersion 17
         targetSdkVersion 17
-        versionCode 24
-        versionName "2.4"
+        versionCode 26
+        versionName "2.6"
     }
     buildTypes {
         debug {
