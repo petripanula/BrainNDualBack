@@ -89,7 +89,7 @@ public class TimeHistoryActivity extends AppCompatActivity {
         }
 
         if(DoNotShowCraph){
-            LinearLayout ll = (LinearLayout) findViewById(R.id.chart);
+            LinearLayout ll = (LinearLayout) findViewById(R.id.charttime);
             ll.setGravity(Gravity.CENTER);
 
 
