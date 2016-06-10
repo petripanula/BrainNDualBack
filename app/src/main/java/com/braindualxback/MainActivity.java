@@ -210,7 +210,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     String mFirstChoiceSku = "";
     String mSecondChoiceSku = "";
 
-    //TODO make sure to use infinite_laughs for release
     // SKU for our subscription (infinite gas)
     //static final String SKU_INFINITE_LAUGH = "infinite_laughs";
     static final String SKU_INFINITE_GAS_MONTHLY = "infinite_gas_monthly";
@@ -644,7 +643,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         }
 
         if (!manualmode) {
-            InitPlayModeParam();
             ShowToastnBack();
         }
 
@@ -655,8 +653,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         if (ENABLE_LOGS) Log.d("Pete", "Start...");
         mTracker.send(new HitBuilders.EventBuilder().setCategory("Action").setAction("Start Button Pressed").build());
 
-        nBackWhenPlaying = nBack;
-
         for(int l=0; l<GamePointsLevel.length; l++) {
             GamePointsLevel[l][0] = 0;
             GamePointsLevel[l][1] = 0;
@@ -665,7 +661,9 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             if (!manualmode) {
                 //Gamemode always starts from 1
                 nBack = 1;
+                InitPlayModeParam();
             }
+            nBackWhenPlaying = nBack;
         }
 
 

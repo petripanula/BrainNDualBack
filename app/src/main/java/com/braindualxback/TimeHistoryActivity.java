@@ -27,10 +27,6 @@ import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-
 public class TimeHistoryActivity extends AppCompatActivity {
 
     public static int[] Time_game;

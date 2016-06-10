@@ -8,12 +8,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 
-/**
- * Created by ppanula on 23.5.2016.
- */
 public class DatabaseHandler extends SQLiteOpenHelper {
 
     // All Static variables
