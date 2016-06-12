@@ -443,6 +443,23 @@ public class InfoActivity extends AppCompatActivity {
         SpacesTextView15.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeSpace);
         ll.addView(SpacesTextView15);
 
+        final TextView Body252 = new TextView(this);
+        Body252.setAutoLinkMask(15);
+        HTMLsourceString = "<font color=#00FF00>  Daily training time is only calculated when nBack is 2 or more. This is the starting number which is claimed to raise IQ. </font>";
+        Body252.setText(Html.fromHtml(HTMLsourceString));
+        Body252.setGravity(Gravity.CENTER);
+        Body252.setTextColor(Color.WHITE);
+        Body252.setBackgroundColor(TextBackRoundColour);
+        Body252.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeHeader);
+        ll.addView(Body252);
+
+
+        final TextView SpacesTextView16 = new TextView(this);
+        SpacesTextView16.setText("\n\n");
+        SpacesTextView16.setBackgroundColor(TextBackRoundColour);
+        SpacesTextView16.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeSpace);
+        ll.addView(SpacesTextView16);
+
         final TextView Body26 = new TextView(this);
         Body26.setAutoLinkMask(15);
         HTMLsourceString = "<font color=#00FF00>  <b>Contact developer: pete.panula@gmail.com</b> </font>";
@@ -453,11 +470,11 @@ public class InfoActivity extends AppCompatActivity {
         Body26.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeHeader);
         ll.addView(Body26);
 
-        final TextView SpacesTextView16 = new TextView(this);
-        SpacesTextView16.setText("\n\n");
-        SpacesTextView16.setBackgroundColor(TextBackRoundColour);
-        SpacesTextView16.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeSpace);
-        ll.addView(SpacesTextView16);
+        final TextView SpacesTextView17 = new TextView(this);
+        SpacesTextView17.setText("\n\n");
+        SpacesTextView17.setBackgroundColor(TextBackRoundColour);
+        SpacesTextView17.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeSpace);
+        ll.addView(SpacesTextView17);
 
         final TextView lastTextRow = new TextView(this);
         HTMLsourceString = "Package: " + Package + " versioncode: " + versionCode + " versioname: " + VersioName + " Date: " + LastCompilation();
