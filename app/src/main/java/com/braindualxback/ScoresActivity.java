@@ -200,7 +200,7 @@ public class ScoresActivity extends AppCompatActivity {
         // add the textview to the linearlayout
         ll.addView(HeaderTextView2);
 
-        tablesize = 10;
+        tablesize = 20;
         if (db.getDBsize_game()<tablesize){
             tablesize = db.getDBsize_game();
         }

@@ -2523,6 +2523,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         boolean fullLoad = false;  // set to 'true' to reload all achievements (ignoring cache)
 
+        //Zero XP points...
+        CollectedXPpoints = 0;
         // load achievements
         Games.Achievements.load(mHelper.getApiClient(), fullLoad).setResultCallback(new ResultCallback<Achievements.LoadAchievementsResult>() {
             @Override

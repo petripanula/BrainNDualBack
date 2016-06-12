@@ -102,6 +102,11 @@ public class ChartActivity extends AppCompatActivity {
             }
 
             if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                    Configuration.SCREENLAYOUT_SIZE_NORMAL){
+                FontSize = 16;
+            }
+
+            if((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
                     Configuration.SCREENLAYOUT_SIZE_LARGE){
                 FontSize = 20;
             }
