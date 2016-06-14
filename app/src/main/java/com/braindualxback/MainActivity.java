@@ -23,6 +23,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -61,13 +62,9 @@ import com.google.android.gms.games.achievement.Achievement;
 import com.google.android.gms.games.achievement.Achievements;
 import com.google.example.games.basegameutils.BaseGameActivity;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
-
 
 public class MainActivity extends BaseGameActivity implements NumberPicker.OnValueChangeListener,RateMeMaybe.OnRMMUserChoiceListener,IabBroadcastReceiver.IabBroadcastListener {
 
@@ -79,6 +76,9 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     boolean DisableAdds = false;
     boolean RestartRequired = false;
     int PlayDBInitialized = 0;
+
+    static final String STATE_NBACK = "playernback";
+    //static final String STATE_LEVEL = "playerLevel";
 
     public static final int nBacks = 6;
     public static final int Areas = 4;
@@ -154,13 +154,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     boolean manualmode;
     public static boolean PreventDoubleStart = false;
-    CountDownTimer DoupleStartTimer;
-    CountDownTimer ShowRedTimer;
-    CountDownTimer ClearRedTimer;
-    CountDownTimer ContinuePlayingTimerT;
-    Boolean ShowRedTimerRunning = false;
-    Boolean ClearRedTimerRunning = false;
-    Boolean ContinuePlayingTimer = false;
+    public static CountDownTimer DoupleStartTimer;
+    public static CountDownTimer ShowRedTimer;
+    public static CountDownTimer ClearRedTimer;
+    public static CountDownTimer ContinuePlayingTimerT;
+    public static Boolean ShowRedTimerRunning = false;
+    public static Boolean ClearRedTimerRunning = false;
+    public static Boolean ContinuePlayingTimer = false;
 
     int random_nbr = -1;
     int sound_id = -1;
@@ -213,8 +213,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     // Tracks the currently owned infinite gas SKU, and the options in the Manage dialog
     String mInfiniteGasSku = "";
-    String mFirstChoiceSku = "";
-    String mSecondChoiceSku = "";
+    //String mFirstChoiceSku = "";
+    //String mSecondChoiceSku = "";
 
     // SKU for our subscription (infinite gas)
     //static final String SKU_INFINITE_LAUGH = "infinite_laughs";
@@ -264,6 +264,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         //getSupportActionBar().hide();
+
+        if (savedInstanceState != null) {
+            if (ENABLE_LOGS) Log.d("Pete", "ReCreate MainActivity...");
+        }else {
+            if (ENABLE_LOGS) Log.d("Pete", "Initial Create MainActivity...");
+        }
+
         setContentView(R.layout.activity_main);
 
         RestartRequired = false;
@@ -318,10 +325,10 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                     if (ENABLE_LOGS) Log.d(TAG, "onAdClosed....");
                     requestNewInterstitial();
                     //StartNow();
+                    StopAllTimers("onAdClosed");
                     ContinuePlayingTimer(1000);
                 }
             });
-
 
             requestNewInterstitial();
         }
@@ -490,7 +497,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     // Enables or disables the "please wait" screen.
     void setWaitScreen(boolean set) {
-        if(ENABLE_LOGS) Log.d(TAG, "in setWaitScreen");
+        if(ENABLE_LOGS) Log.d(TAG, "in setWaitScreen - set: " + set);
 
         if(ClearRedTimerRunning || ShowRedTimerRunning){
             if(ENABLE_LOGS) Log.d(TAG, "in setWaitScreen - Game is ongoing!!! Should we skip main_activity set?");
@@ -516,13 +523,78 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         //EasyTracker.getInstance(this).activityStop(this);  // Add this method.
     }
     */
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        if(ENABLE_LOGS) Log.v("Pete", "MainActivity onSaveInstanceState...");
+        // Save the user's current game state
+        savedInstanceState.putInt(STATE_NBACK, nBackWhenPlaying);
+        savedInstanceState.putInt("round", round);
+
+        savedInstanceState.putBoolean("ContinuePlayingTimer", ContinuePlayingTimer);
+        savedInstanceState.putBoolean("ShowRedTimerRunning", ShowRedTimerRunning);
+        savedInstanceState.putBoolean("ClearRedTimerRunning", ClearRedTimerRunning);
+        savedInstanceState.putBoolean("PreventDoubleStart", PreventDoubleStart);
+
+
+        for(int i=0;i<nBacks;i++) {
+            savedInstanceState.putInt("increaseNback_" + i, increaseNback[i]);
+            savedInstanceState.putInt("PlayResult_" + i, PlayResult[i]);
+        }
+
+        for(int l=0; l<GamePointsLevel.length; l++) {
+            savedInstanceState.putInt("GamePointsLevel_" + l + "_0", GamePointsLevel[l][0]);
+            savedInstanceState.putInt("GamePointsLevel_" + l + "_1", GamePointsLevel[l][1]);
+        }
+
+        // Always call the superclass so it can save the view hierarchy state
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        // Always call the superclass so it can restore the view hierarchy
+        super.onRestoreInstanceState(savedInstanceState);
+
+        if(ENABLE_LOGS) Log.v("Pete", "MainActivity onRestoreInstanceState...");
+
+        // Restore state members from saved instance
+        nBackWhenPlaying = savedInstanceState.getInt(STATE_NBACK);
+        round = savedInstanceState.getInt("round");
+
+        if(ENABLE_LOGS) Log.v("Pete", "round: " + round);
+
+        ContinuePlayingTimer = savedInstanceState.getBoolean("ContinuePlayingTimer");
+        ShowRedTimerRunning = savedInstanceState.getBoolean("ShowRedTimerRunning");
+        ClearRedTimerRunning = savedInstanceState.getBoolean("ClearRedTimerRunning");
+
+        //Just if this is false....
+        if(!PreventDoubleStart)
+            PreventDoubleStart = savedInstanceState.getBoolean("PreventDoubleStart");
+
+        if(ENABLE_LOGS) Log.v("Pete", "ContinuePlayingTimer: " + ContinuePlayingTimer);
+        if(ENABLE_LOGS) Log.v("Pete", "ShowRedTimerRunning: " + ShowRedTimerRunning);
+        if(ENABLE_LOGS) Log.v("Pete", "ClearRedTimerRunning: " + ClearRedTimerRunning);
+        if(ENABLE_LOGS) Log.v("Pete", "PreventDoubleStart: " + PreventDoubleStart);
+
+        for(int i=0;i<nBacks;i++) {
+            increaseNback[i] = savedInstanceState.getInt("increaseNback_" + i);
+            PlayResult[i] = savedInstanceState.getInt("PlayResult_" + i);
+        }
+
+        for(int l=0; l<GamePointsLevel.length; l++) {
+            GamePointsLevel[l][0] = savedInstanceState.getInt("GamePointsLevel_" + l +"_0");
+            GamePointsLevel[l][1] = savedInstanceState.getInt("GamePointsLevel_" + l +"_1");
+        }
+
+        if(ENABLE_LOGS) Log.v("Pete", "nBackWhenPlaying: " + nBackWhenPlaying);
+    }
+
 
     @Override
     public void onPause() {
         super.onPause();
         if(ENABLE_LOGS) Log.v("Pete", "MainActivity onPause...");
 
-        StopAllTimers();
+        StopAllTimers("onPause");
 
         isPaused = true;
         MyisResumed = false;
@@ -534,9 +606,29 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         if(ENABLE_LOGS) Log.v("Pete", "MainActivity onResume...");
 
         ReadPreferences();
-        SetInitUI("onResume");
-        InitAll();
+
+        if(!ContinuePlayingTimer && !ShowRedTimerRunning && !ClearRedTimerRunning && !PreventDoubleStart) {
+            if(ENABLE_LOGS) Log.v("Pete", "No Timers should be running so we call SetInitUI");
+            SetInitUI("onResume");
+        }
+
+        if(PreventDoubleStart) {
+            if (ENABLE_LOGS) Log.d("Pete", "PreventDoubleStart is true.. ");
+
+            if(DoupleStartTimer!=null)
+                DoupleStartTimer.cancel();
+
+            StopAllTimers("onResume");
+            PreventDoubleStart(10000);
+            SetGameButtons("onResume");
+            ContinuePlayingTimer(1000);
+        }
+
+
+        InitAll("onResume");
         setWaitScreen(false);
+        SetHeader(nBack);
+
 
         /*
         for(int l=0; l<GamePointsLevel.length; l++) {
@@ -581,9 +673,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         isPaused = false;
         MyisResumed = true;
-
-        if(ENABLE_LOGS) Log.v("Pete", "onResume - MyisResumed: " + MyisResumed);
-
     }
 
     @Override
@@ -656,9 +745,9 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void StartNow(){
         ShowRedTimer(5000);
 
-        findViewById(R.id.horizontalview).setVisibility(View.GONE);
-        findViewById(R.id.linearview).setVisibility(View.VISIBLE);
-        findViewById(R.id.undergrid).setVisibility(View.VISIBLE);
+        //findViewById(R.id.horizontalview).setVisibility(View.GONE);
+        //findViewById(R.id.linearview).setVisibility(View.VISIBLE);
+        //findViewById(R.id.undergrid).setVisibility(View.VISIBLE);
 
         for(int l=0; l<GamePointsLevel.length; l++) {
             GamePointsLevel[l][0] = 0;
@@ -681,6 +770,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             return;
         }
 
+        SetGameButtons("Start");
+
         PreventDoubleStart = true;
         PreventDoubleStart(10000);
 
@@ -690,15 +781,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             GamePointsLevel[l][0] = 0;
             GamePointsLevel[l][1] = 0;
             round = 0;
-
-            if (!manualmode) {
-                //Gamemode always starts from 1
-                nBack = 1;
-                InitPlayModeParam();
-            }
-            nBackWhenPlaying = nBack;
         }
-
+        if (!manualmode) {
+            //Gamemode always starts from 1
+            nBack = 1;
+            InitPlayModeParam();
+        }
+        nBackWhenPlaying = nBack;
 
         if(mInterstitialAd!=null) {
             if (mInterstitialAd.isLoaded()) {
@@ -714,8 +803,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         }
     }
 
-    public void StopAllTimers(){
-        if (ENABLE_LOGS) Log.d("Pete", "StopAllTimers().....");
+    public void StopAllTimers(String caller){
+        if (ENABLE_LOGS) Log.d("Pete", "StopAllTimers() - caller: " + caller);
 
         ShowRedTimerRunning = false;
 
@@ -727,8 +816,10 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         if(ClearRedTimer!=null)
             ClearRedTimer.cancel();
 
-        if(ContinuePlayingTimerT!=null)
+        if(ContinuePlayingTimerT!=null) {
+            if (ENABLE_LOGS) Log.d("Pete", "ContinuePlayingTimerT.cancel()");
             ContinuePlayingTimerT.cancel();
+        }
 
         if (mp != null) {
             if (ENABLE_LOGS) Log.d("Pete", "StopAllTimers() - mp.release()");
@@ -767,8 +858,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         //PrintLists();
 
         SetInitUI("Stop");
-        StopAllTimers();
-        InitAll();
+        StopAllTimers("Stop");
+        InitAll("Stop");
 
         InitPlayModeParam();
 
@@ -785,8 +876,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         }
 
         SetInitUI("Restart");
-        StopAllTimers();
-        InitAll();
+        StopAllTimers("Restart");
+        InitAll("Restart");
         InitPlayModeParam();
 
         if (Build.VERSION.SDK_INT >= 11) {
@@ -819,6 +910,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             WrongSoundClicked+=1;
             UpdatePlayerPoint(-10);
         }
+
+        //finish();
     }
 
     public void MatchPic(View arg0) {
@@ -938,6 +1031,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         beginUserInitiatedSignIn();
     }
 
+    /*
     //@Override
     public void onSignOutButtonClicked(View view) {
         if(ENABLE_LOGS) Log.v("Pete", "In onSignOutButtonClicked...");
@@ -946,14 +1040,15 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             if(ENABLE_LOGS) Log.v("Pete", "lets sign out...");
             signOut();
         }
-        /*
+
         View b_out = findViewById(R.id.button_sign_out);
         b_out.setVisibility(View.GONE);
 
         View b_in = findViewById(R.id.button_sign_in);
         b_in.setVisibility(View.VISIBLE);
-        */
+
     }
+    */
 
     public void onShowGlobalHiScores(View arg0){
         if(ENABLE_LOGS) Log.v("Pete", "onShowGlobalHiScores clicked...");
@@ -968,19 +1063,28 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         }
     }
 
+    /*
     public void turnOffScreen(){
         // turn off screen
         if(ENABLE_LOGS) Log.d ("Pete", "turnOffScreen...");
         getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
+    */
 
     public void ShowRedTimer(long startfromthis_ms) {
         if(ENABLE_LOGS) Log.v("Pete", "In ShowRedTimer - nBack: " + nBack);
 
+        View MyView = findViewById(R.id.horizontalview);
+
+        if (MyView.getVisibility() == View.VISIBLE) {
+            if(ENABLE_LOGS) Log.v("Pete", "In ShowRedTimer - This is ever be here - BUG!!!!!!");
+            SetGameButtons("ShowRedTimer");
+        }
+
         NumberOfPicturesToShow-=1;
 
+        /*
         int FontSize = ReturnFontSize();
-
         TextHeader = (TextView)findViewById(R.id.undergrid);
         TextHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         TextHeader.setTypeface(TextHeader.getTypeface(), Typeface.BOLD);
@@ -988,7 +1092,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         TextHeader.setTextColor(Color.WHITE);
         String message = "" + NumberOfPicturesToShow;
         TextHeader.setText(message);
-
+        */
         if(ENABLE_LOGS) Log.v("Pete", "NumberOfPicturesToShow: " + NumberOfPicturesToShow);
 
         if(NumberOfPicturesToShow<=0){
@@ -1038,13 +1142,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
             ShowPopUp_OK();
             //SetInitUI("ShowRedTimer");
-            InitAll();
+            InitAll("ShowRedTimer");
 
             if(!manualmode) {
                 //Played level only once...
                 if (increaseNback[nBack] == 1) {
                     if (PlayResult[nBack] == 1) {
-
+                        if(ENABLE_LOGS) Log.v("Pete", "Game continues.....");
                     } else {
                         if(ENABLE_LOGS) Log.v("Pete", "Game over.....");
                         //DatabaseHandler db = new DatabaseHandler(this);
@@ -1055,7 +1159,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 }
                 if (increaseNback[nBack] == 2) {
                     if (PlayResult[nBack] == 2) {
-
+                        if(ENABLE_LOGS) Log.v("Pete", "Game continues 2.....");
                     } else {
                         if(ENABLE_LOGS) Log.v("Pete", "Game over.....");
                         db.addScore_game(playername,GetPlayerPoint());
@@ -1128,6 +1232,16 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         if(ENABLE_LOGS) Log.v("Pete", "In ClearRedTimer...");
         ClearRedTimerRunning =  true;
 
+        int testNumberOfPicturesToShow = NumberOfPicturesToShow - 1;
+        int FontSize = ReturnFontSize();
+        TextHeader = (TextView)findViewById(R.id.undergrid);
+        TextHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+        TextHeader.setTypeface(TextHeader.getTypeface(), Typeface.BOLD);
+        TextHeader.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+        TextHeader.setTextColor(Color.WHITE);
+        String message = "" + testNumberOfPicturesToShow;
+        TextHeader.setText(message);
+
         ClearRedTimer = new CountDownTimer(startfromthis_ms, 1000) {
 
             public void onTick(long millisUntilFinished) {
@@ -1175,7 +1289,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         if(ENABLE_LOGS) Log.v("Pete", "In ContinuePlayingTimer - nBack: " + nBack);
 
         PreventDoubleStart = true;
-        PreventDoubleStart(10000);
+        PreventDoubleStart(15000);
 
         ContinuePlayingTimer =  true;
 
@@ -1201,16 +1315,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                     SetHeader(nBack);
                     ShowToastnBack();
 
-                    //SetInitUI("ContinuePlayingTimer - onFinish()");
                     SetHeader(nBack);
 
                     ShowRedTimer(5000);
 
-                    if(ENABLE_LOGS) Log.v("Pete", "ContinuePlayingTimer - setting horizontalview GONE...");
+                    SetNbrPicturesLeft(NumberOfPicturesToShow);
 
-                    findViewById(R.id.horizontalview).setVisibility(View.GONE);
-                    findViewById(R.id.linearview).setVisibility(View.VISIBLE);
-                    findViewById(R.id.undergrid).setVisibility(View.VISIBLE);
+                    //SetGameButtons("ContinuePlayingTimer");
 
                     timestart = (int) ((System.currentTimeMillis() / 1000) % 3600);
                 }
@@ -1262,6 +1373,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         return returnvalue;
     }
 
+    /*
     public void PrintLists(){
         if(ENABLE_LOGS) Log.v("Pete", "In PrintLists...");
         for(int l=0; l<mySoundList.size(); l++) {
@@ -1271,6 +1383,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             if(ENABLE_LOGS) Log.v("Pete", "myVisualList: " + myVisualList.get(l));
         }
     }
+    */
 
     public void PlayApplause(){
         if(MainActivity.ENABLE_LOGS) Log.v("Pete", "in PlayApplause....");
@@ -1375,7 +1488,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     }
 
-    public void InitAll(){
+    public void InitAll(String caller){
+        if(MainActivity.ENABLE_LOGS) Log.v("Pete", "InitAll - Caller: " + caller);
 
         int color = Color.parseColor("#FFFFFF");
 
@@ -1451,8 +1565,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         ImageButton justfind;
 
         // POPUP WINDOW STARTS //
+
         LayoutInflater layoutInflater  = (LayoutInflater)getBaseContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-        View popupView = layoutInflater.inflate(R.layout.popup, null);
+
+        //just avoiding compiler warning...
+        final ViewGroup nullParent = null;
+        View popupView = layoutInflater.inflate(R.layout.popup, nullParent);
+
 
         // final PopupWindow popupWindow;
         popupWindow = new PopupWindow(popupView, ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
@@ -1499,19 +1618,19 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         rowTextView2.setTypeface(rowTextView2.getTypeface(), Typeface.BOLD);
         ll.addView(rowTextView2,params);
 
-        final TextView EmptyRowView2 = new TextView(this);;
+        final TextView EmptyRowView2 = new TextView(this);
         EmptyRowView2.setText("\n");
         EmptyRowView2.setGravity(Gravity.CENTER);
         EmptyRowView2.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         EmptyRowView2.setTypeface(EmptyRowView2.getTypeface(), Typeface.BOLD);
         ll.addView(EmptyRowView2,params);
 
-
+        message = "CANCEL";
         Button btnDismiss = new Button(this);
         LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         params2.setMargins(5, 5, 5, 10);
         btnDismiss.setLayoutParams(params2);
-        btnDismiss.setText("CANCEL");
+        btnDismiss.setText(message);
         btnDismiss.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         btnDismiss.setBackgroundResource(R.drawable.button_info_page);
         btnDismiss.setTextColor(Color.WHITE);
@@ -1527,11 +1646,12 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             }
         });
 
+        message = "BUY";
         Button buy = new Button(this);
         LinearLayout.LayoutParams params3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         params3.setMargins(5,5,5,10);
         buy.setLayoutParams(params3);
-        buy.setText("BUY");
+        buy.setText(message);
         buy.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         buy.setBackgroundResource(R.drawable.button_info_page);
         buy.setTextColor(Color.WHITE);
@@ -1585,7 +1705,11 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         // POPUP WINDOW STARTS //
         LayoutInflater layoutInflater  = (LayoutInflater)getBaseContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-        View popupView = layoutInflater.inflate(R.layout.popup2, null);
+        //View popupView = layoutInflater.inflate(R.layout.popup2, null);
+
+        //just avoiding compiler warning...
+        final ViewGroup nullParent = null;
+        View popupView = layoutInflater.inflate(R.layout.popup2, nullParent);
 
         // final PopupWindow popupWindow;
         popupWindow = new PopupWindow(popupView, ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
@@ -1818,10 +1942,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                     }
 
                     //ContinuePlayingTimer(10);
-                }
-                SetInitUI("ShowPopUp_OK");
-                //if(callShow)
-                //    called_show();
+                }else
+                    SetInitUI("ShowPopUp_OK");
             }
         });
 
@@ -1902,9 +2024,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             mHelper.getApiClient().disconnect();
         } else {
             if(ENABLE_LOGS) Log.v("Pete","Else - onActivityResult requestCode: " + requestCode + " resultCode: " + resultCode);
-            //TODO
-            mHelper.onActivityResult(requestCode, resultCode, intent);
 
+            mHelper.onActivityResult(requestCode, resultCode, intent);
         }
     }
 
@@ -2045,9 +2166,15 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         int points = 0;
 
+        for (int[] aGamePointsLevel : GamePointsLevel) {
+            points = points + aGamePointsLevel[0] + aGamePointsLevel[1];
+        }
+        //Below was earlier...
+        /*
         for(int l=0; l<GamePointsLevel.length; l++) {
             points = points + GamePointsLevel[l][0] + GamePointsLevel[l][1];
         }
+        */
 
         return points;
     }
@@ -2131,7 +2258,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 } catch (IabAsyncInProgressException e) {
                     complain("Error consuming gas. Another async operation in progress.");
                 }
-                return;
+                //return;
             }
 
             //updateUi();
@@ -2151,6 +2278,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         }
     }
 
+    /*
     // User clicked the "Buy Gas" button
     public void onBuyGasButtonClicked(View arg0) {
         Log.d(TAG, "Buy gas button clicked.");
@@ -2170,9 +2298,9 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         setWaitScreen(true);
         Log.d(TAG, "Launching purchase flow for gas.");
 
-        /* TODO: for security, generate your payload here for verification. See the comments on
-         *        verifyDeveloperPayload() for more info. Since this is a SAMPLE, we just use
-         *        an empty string, but on a production app you should carefully generate this. */
+        //   for security, generate your payload here for verification. See the comments on
+        // *        verifyDeveloperPayload() for more info. Since this is a SAMPLE, we just use
+        // *        an empty string, but on a production app you should carefully generate this.
         String payload = "";
 
         try {
@@ -2183,6 +2311,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             setWaitScreen(false);
         }
     }
+    */
 
     public void BuyButton(View arg0) {
         mTracker.send(new HitBuilders.EventBuilder().setCategory("Action").setAction("Buy Button Pressed").build());
@@ -2194,7 +2323,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         Log.d(TAG, "Upgrade button clicked; launching purchase flow for upgrade.");
         setWaitScreen(true);
 
-        /* TODO: for security, generate your payload here for verification. See the comments on
+        /*  for security, generate your payload here for verification. See the comments on
          *        verifyDeveloperPayload() for more info. Since this is a SAMPLE, we just use
          *        an empty string, but on a production app you should carefully generate this. */
         String payload = "";
@@ -2208,6 +2337,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         }
     }
 
+    /*
     // "Subscribe to infinite gas" button clicked. Explain to user, then start purchase
     // flow for subscription.
     public void onInfiniteGasButtonClicked(View arg0) {
@@ -2248,17 +2378,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             titleResId = R.string.subscription_update_prompt;
         }
 
-        /*
-        Builder builder = new Builder(this);
-        builder.setTitle(titleResId)
-                .setSingleChoiceItems(options, 0 , this)
-                .setPositiveButton(R.string.subscription_prompt_continue, this)
-                .setNegativeButton(R.string.subscription_prompt_cancel, this);
-        AlertDialog dialog = builder.create();
-        dialog.show();
-        */
     }
-
+    */
     /*
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -2282,8 +2403,10 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     boolean verifyDeveloperPayload(Purchase p) {
         String payload = p.getDeveloperPayload();
 
+        Log.d(TAG, "payload: " + payload);
+
         /*
-         * TODO: verify that the developer payload of the purchase is correct. It will be
+         * verify that the developer payload of the purchase is correct. It will be
          * the same one that you sent when initiating the purchase.
          *
          * WARNING: Locally generating a random string when starting a purchase and
@@ -2329,43 +2452,45 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
             Log.d(TAG, "Purchase successful.");
 
-            if (purchase.getSku().equals(SKU_GAS)) {
-                // bought 1/4 tank of gas. So consume it.
-                Log.d(TAG, "Purchase is gas. Starting gas consumption.");
-                try {
-                    mIabHelper.consumeAsync(purchase, mConsumeFinishedListener);
-                } catch (IabAsyncInProgressException e) {
-                    complain("Error consuming gas. Another async operation in progress.");
+            switch (purchase.getSku()) {
+                case SKU_GAS:
+                    // bought 1/4 tank of gas. So consume it.
+                    Log.d(TAG, "Purchase is gas. Starting gas consumption.");
+                    try {
+                        mIabHelper.consumeAsync(purchase, mConsumeFinishedListener);
+                    } catch (IabAsyncInProgressException e) {
+                        complain("Error consuming gas. Another async operation in progress.");
+                        setWaitScreen(false);
+                        return;
+                    }
+                    break;
+                case SKU_PREMIUM:
+                    // bought the premium upgrade!
+                    Log.d(TAG, "Purchase is premium upgrade. Congratulating user.");
+                    alert("Thank you for upgrading to premium!");
+                    mIsPremium = true;
+                    //updateUi();
                     setWaitScreen(false);
-                    return;
-                }
-            }
-            else if (purchase.getSku().equals(SKU_PREMIUM)) {
-                // bought the premium upgrade!
-                Log.d(TAG, "Purchase is premium upgrade. Congratulating user.");
-                alert("Thank you for upgrading to premium!");
-                mIsPremium = true;
-                //updateUi();
-                setWaitScreen(false);
 
-                if(mIsPremium){
-                    Log.d(TAG, "OnIabPurchaseFinishedListener - Adding 666 to testint...");
-                    testint = 666;
-                    RestartRequired = true;
-                    saveLocal();
-                }
-            }
-            else if (purchase.getSku().equals(SKU_INFINITE_GAS_MONTHLY)
-                    || purchase.getSku().equals(SKU_INFINITE_GAS_YEARLY)) {
-                // bought the infinite gas subscription
-                Log.d(TAG, "Infinite gas subscription purchased.");
-                alert("Thank you for subscribing to infinite gas!");
-                mSubscribedToInfiniteGas = true;
-                mAutoRenewEnabled = purchase.isAutoRenewing();
-                mInfiniteGasSku = purchase.getSku();
-                mTank = TANK_MAX;
-                //updateUi();
-                setWaitScreen(false);
+                    if (mIsPremium) {
+                        Log.d(TAG, "OnIabPurchaseFinishedListener - Adding 666 to testint...");
+                        testint = 666;
+                        RestartRequired = true;
+                        saveLocal();
+                    }
+                    break;
+                case SKU_INFINITE_GAS_MONTHLY:
+                case SKU_INFINITE_GAS_YEARLY:
+                    // bought the infinite gas subscription
+                    Log.d(TAG, "Infinite gas subscription purchased.");
+                    alert("Thank you for subscribing to infinite gas!");
+                    mSubscribedToInfiniteGas = true;
+                    mAutoRenewEnabled = purchase.isAutoRenewing();
+                    mInfiniteGasSku = purchase.getSku();
+                    mTank = TANK_MAX;
+                    //updateUi();
+                    setWaitScreen(false);
+                    break;
             }
         }
     };
@@ -2387,7 +2512,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 Log.d(TAG, "Consumption successful. Provisioning.");
                 mTank = mTank == TANK_MAX ? TANK_MAX : mTank + 1;
 
-                //TODO
+                //
                 //saveData();
                 alert("You filled 1/4 tank. Your tank is now " + String.valueOf(mTank) + "/4 full!");
             }
@@ -2400,19 +2525,21 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         }
     };
 
+    /*
     // Drive button clicked. Burn gas!
     public void onDriveButtonClicked(View arg0) {
         Log.d(TAG, "Drive button clicked.");
         if (!mSubscribedToInfiniteGas && mTank <= 0) alert("Oh, no! You are out of gas! Try buying some!");
         else {
             if (!mSubscribedToInfiniteGas) --mTank;
-            //TODO
+            //
             //saveData();
             alert("Vroooom, you drove a few miles.");
             //updateUi();
             Log.d(TAG, "Vrooom. Tank is now " + mTank);
         }
     }
+    */
 
     // We're being destroyed. It's important to dispose of the helper here!
     @Override
@@ -2475,7 +2602,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public void SetHeader(int n_back){
         int FontSize = 12;
-        int playedToday = 0;
+        int playedToday;
         String Player;
         String HTMLsourceString;
 
@@ -2492,7 +2619,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         DatabaseHandler db = new DatabaseHandler(this);
         playedToday = db.PlayTimeToday();
-        playedToday = (int) playedToday / 60;
+        playedToday = (playedToday / 60);
         db.close();
 
         TextHeader = (TextView)findViewById(R.id.headertext);
@@ -2553,5 +2680,27 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             return false;
         else
             return true;
+    }
+
+    public void SetGameButtons(String caller){
+        if(ENABLE_LOGS) Log.v("Pete", "SetGameButtons - Caller: " + caller);
+
+        findViewById(R.id.horizontalview).setVisibility(View.GONE);
+        findViewById(R.id.linearview).setVisibility(View.VISIBLE);
+        findViewById(R.id.undergrid).setVisibility(View.VISIBLE);
+
+        int myNumberOfPicturesToShow = NumberOfPicturesToShow - 1;
+        SetNbrPicturesLeft(myNumberOfPicturesToShow);
+    }
+
+    public void SetNbrPicturesLeft(int myNumberOfPicturesToShow){
+        int FontSize = ReturnFontSize();
+        TextHeader = (TextView)findViewById(R.id.undergrid);
+        TextHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+        TextHeader.setTypeface(TextHeader.getTypeface(), Typeface.BOLD);
+        TextHeader.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+        TextHeader.setTextColor(Color.WHITE);
+        String message = "" + myNumberOfPicturesToShow;
+        TextHeader.setText(message);
     }
 }

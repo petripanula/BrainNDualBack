@@ -197,6 +197,7 @@ public class TimeHistoryActivity extends AppCompatActivity {
                 series.addAnnotation(Integer.toString(Time_game[j]), j,  Time_game[j] + 1);
                 renderer.setAnnotationsTextSize(AnnotatFont);
 
+                //This doesn't work like I thought....
                 if(Time_game[j]<20)
                     renderer.setAnnotationsColor(Color.RED);
                 else
