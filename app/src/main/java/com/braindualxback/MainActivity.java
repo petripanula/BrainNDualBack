@@ -69,7 +69,7 @@ import java.util.Random;
 public class MainActivity extends BaseGameActivity implements NumberPicker.OnValueChangeListener,RateMeMaybe.OnRMMUserChoiceListener,IabBroadcastReceiver.IabBroadcastListener {
 
     //TODO for release builds set to ENABLE_LOGS = false
-    public static final boolean ENABLE_LOGS = true;
+    public static final boolean ENABLE_LOGS = false;
     public static final boolean ENABLE2_LOGS = false;
     public static final String TAG = "Pete";
 
@@ -326,7 +326,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                     requestNewInterstitial();
                     //StartNow();
                     StopAllTimers("onAdClosed");
-                    ContinuePlayingTimer(1000);
+                    ContinuePlayingTimer(1000,"onAdClosed");
                 }
             });
 
@@ -578,16 +578,19 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         for(int i=0;i<nBacks;i++) {
             increaseNback[i] = savedInstanceState.getInt("increaseNback_" + i);
             PlayResult[i] = savedInstanceState.getInt("PlayResult_" + i);
+            if(ENABLE_LOGS) Log.v("Pete", "increaseNback[i]: " + increaseNback[i]);
+            if(ENABLE_LOGS) Log.v("Pete", "PlayResult[i]: " + PlayResult[i]);
         }
 
         for(int l=0; l<GamePointsLevel.length; l++) {
             GamePointsLevel[l][0] = savedInstanceState.getInt("GamePointsLevel_" + l +"_0");
             GamePointsLevel[l][1] = savedInstanceState.getInt("GamePointsLevel_" + l +"_1");
+            if(ENABLE_LOGS) Log.v("Pete", "GamePointsLevel[l][0]: " + GamePointsLevel[l][0]);
+            if(ENABLE_LOGS) Log.v("Pete", "GamePointsLevel[l][1]: " + GamePointsLevel[l][1]);
         }
 
         if(ENABLE_LOGS) Log.v("Pete", "nBackWhenPlaying: " + nBackWhenPlaying);
     }
-
 
     @Override
     public void onPause() {
@@ -621,22 +624,12 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             StopAllTimers("onResume");
             PreventDoubleStart(10000);
             SetGameButtons("onResume");
-            ContinuePlayingTimer(1000);
+            ContinuePlayingTimer(1000,"onResume");
         }
-
 
         InitAll("onResume");
         setWaitScreen(false);
         SetHeader(nBack);
-
-
-        /*
-        for(int l=0; l<GamePointsLevel.length; l++) {
-            GamePointsLevel[l][0] = 0;
-            GamePointsLevel[l][1] = 0;
-            round = 0;
-        }
-        */
 
         if(!manualmode){
             //InitPlayModeParam();
@@ -745,10 +738,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void StartNow(){
         ShowRedTimer(5000);
 
-        //findViewById(R.id.horizontalview).setVisibility(View.GONE);
-        //findViewById(R.id.linearview).setVisibility(View.VISIBLE);
-        //findViewById(R.id.undergrid).setVisibility(View.VISIBLE);
-
         for(int l=0; l<GamePointsLevel.length; l++) {
             GamePointsLevel[l][0] = 0;
             GamePointsLevel[l][1] = 0;
@@ -764,6 +753,16 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public void Start(View arg0){
         if (ENABLE_LOGS) Log.d("Pete", "Start...");
+
+        //Just make sure we do not start with nBack zero???
+        if(nBack==0) {
+            nBack = 1;
+
+            SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+            SharedPreferences.Editor editor = SP.edit();
+            editor.putString("nback", "1");
+            editor.apply();
+        }
 
         if(PreventDoubleStart) {
             if (ENABLE_LOGS) Log.d("Pete", "Double Start Prevented......");
@@ -1083,16 +1082,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         NumberOfPicturesToShow-=1;
 
-        /*
-        int FontSize = ReturnFontSize();
-        TextHeader = (TextView)findViewById(R.id.undergrid);
-        TextHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
-        TextHeader.setTypeface(TextHeader.getTypeface(), Typeface.BOLD);
-        TextHeader.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
-        TextHeader.setTextColor(Color.WHITE);
-        String message = "" + NumberOfPicturesToShow;
-        TextHeader.setText(message);
-        */
         if(ENABLE_LOGS) Log.v("Pete", "NumberOfPicturesToShow: " + NumberOfPicturesToShow);
 
         if(NumberOfPicturesToShow<=0){
@@ -1285,8 +1274,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     }
 
 
-    public void ContinuePlayingTimer(long startfromthis_ms) {
-        if(ENABLE_LOGS) Log.v("Pete", "In ContinuePlayingTimer - nBack: " + nBack);
+    public void ContinuePlayingTimer(long startfromthis_ms, String caller) {
+        if(ENABLE_LOGS) Log.v("Pete", "In ContinuePlayingTimer - nBack: " + nBack + " caller: " + caller);
 
         PreventDoubleStart = true;
         PreventDoubleStart(15000);
@@ -1306,7 +1295,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
                 if(!ReturnIsResumed()){
                     if(ENABLE_LOGS) Log.v("Pete", "ContinuePlayingTimer - MyisResumed is false...");
-                    ContinuePlayingTimer(500);
+                    ContinuePlayingTimer(500,"ContinuePlayingTimer - MyisResumed is false");
                 }else {
 
                     ContinuePlayingTimer = false;
@@ -1719,6 +1708,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         popupWindow.setWidth(ActionBar.LayoutParams.WRAP_CONTENT);
 
         String message;
+        String message2 = "";
 
         LinearLayout ll = (LinearLayout)popupView.findViewById(R.id.popup_ll);
 
@@ -1825,18 +1815,21 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         if(!manualmode) {
             if (increaseNback[nBack] == 1) {
                 if (PlayResult[nBack] == 1) {
-                    message = " Nice Work - continue playing! Points from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
+                    message = " Nice Work - continue playing! ";
+                    message2 = " Points from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
                     ContinuePlaying = true;
                 } else {
-                    message = " Game over! Points from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
+                    message = " Game over! ";
+                    message2 = " Points from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
                 }
             }
             if (increaseNback[nBack] == 2) {
                 if (PlayResult[nBack] == 2) {
-                    message = " Nice Work - nBack increased! Points from this level: " + GamePointsLevel[nBack][1] + " TotalPoints: " + GetPlayerPoint() + " ";
+                    message = " Nice Work - nBack increased! ";
+                    message2 = " Points from this level: " + GamePointsLevel[nBack][1] + " TotalPoints: " + GetPlayerPoint() + " ";
 
                     if(nBack==1)
-                        message = " Nice Work - nBack increased! Points from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
+                        message2 = " Points from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
 
                     if(nBack<nBacks) {
                         nBack++;
@@ -1845,15 +1838,17 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                         round = 0;
                     }
                     else{
-                        message = " Congratulation! Maximum Level Reached! Points from this level: " + GamePointsLevel[nBack][1] + " TotalPoints: " + GetPlayerPoint() + " ";
+                        message = " Congratulation! Maximum Level Reached! ";
+                        message2 = " Points from this level: " + GamePointsLevel[nBack][1] + " TotalPoints: " + GetPlayerPoint() + " ";
                         mTracker.send(new HitBuilders.EventBuilder().setCategory("Action").setAction("Game Played Trough!!").build());
                     }
 
                 } else {
-                    message = " Game over now! Points from this level: " + GamePointsLevel[nBack][1] + " TotalPoints: " + GetPlayerPoint() + " ";
+                    message = " Game over now! ";
+                    message2 = " Points from this level: " + GamePointsLevel[nBack][1] + " TotalPoints: " + GetPlayerPoint() + " ";
 
                     if(nBack==1)
-                        message = " Game over now! Points from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
+                        message2 = " Points from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
 
                 }
             }
@@ -1866,6 +1861,15 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             last2RowTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
             last2RowTextView.setTypeface(last2RowTextView.getTypeface(), Typeface.BOLD);
             ll.addView(last2RowTextView, params);
+
+            final TextView last21RowTextView = new TextView(this);
+            last21RowTextView.setText(message2);
+            last21RowTextView.setGravity(Gravity.CENTER);
+            last21RowTextView.setTextColor(Color.WHITE);
+            last21RowTextView.setBackgroundColor(TextBackRoundColour);
+            last21RowTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+            last21RowTextView.setTypeface(last2RowTextView.getTypeface(), Typeface.BOLD);
+            ll.addView(last21RowTextView, params);
 
             final TextView last3RowTextView = new TextView(this);
             last3RowTextView.setText("\n");
@@ -1934,11 +1938,11 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                             mInterstitialAd.show();
                         } else {
                             if (ENABLE_LOGS) Log.d("Pete", "No Ads Loaded - start game...");
-                            ContinuePlayingTimer(10);
+                            ContinuePlayingTimer(10,"ShowPopUp_OK - No Ads Loaded");
                         }
                     }else{
                         if (ENABLE_LOGS) Log.d("Pete", "mInterstitialAd is null - start game...");
-                        ContinuePlayingTimer(10);
+                        ContinuePlayingTimer(10,"ShowPopUp_OK - mInterstitialAd is null");
                     }
 
                     //ContinuePlayingTimer(10);

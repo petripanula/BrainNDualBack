@@ -64,16 +64,16 @@ public class TimeHistoryActivity extends AppCompatActivity {
         if (MainActivity.ENABLE_LOGS) Log.v("Pete", "testint: " + testint);
 
         DisplayMetrics metrics = this.getResources().getDisplayMetrics();
-        float HeaderFont = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 25, metrics);
+        float HeaderFont = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 22, metrics);
         float AxisFont = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 22, metrics);
         float AnnotatFont = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 20, metrics);
 
         DbSize = db.get_number_of_days();
-        String HTMLsourceString = "<font color=#00FF00><b> Nothing to show here yet. Do some training in PlayMode! </b></font>";
+        String HTMLsourceString = "<font color=#00FF00><b> Nothing to show here yet. Do some training using nBack > 1! </b></font>";
         boolean DoNotShowCraph;
 
         if(DbSize<3){
-            HTMLsourceString = "<font color=#00FF00><b> Nothing to show here yet. Do some training in PlayMode! </b></font>";
+            HTMLsourceString = "<font color=#00FF00><b> Nothing to show here yet. Do some training using nBack > 1! </b></font>";
             DoNotShowCraph = true;
         }else{
             DoNotShowCraph = false;
@@ -168,7 +168,7 @@ public class TimeHistoryActivity extends AppCompatActivity {
             mRenderer.setXAxisMin(-0.5);
             mRenderer.setInScroll(true);
             mRenderer.setZoomEnabled(true, false);
-            mRenderer.setChartTitle("Playtime history in minutes (X-Date,Y-Time)");
+            mRenderer.setChartTitle("Daily Effective Playtime history in minutes (nBack>1)");
             mRenderer.setChartTitleTextSize(HeaderFont);
             mRenderer.setYLabelsAlign(Paint.Align.RIGHT);
             mRenderer.setAxisTitleTextSize(AxisFont);
@@ -186,14 +186,14 @@ public class TimeHistoryActivity extends AppCompatActivity {
 
             mRenderer.setMargins(new int[] { Top, Left, Bottom, Right });
 
-            //SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-            //SimpleDateFormat sdf = new SimpleDateFormat("dd-MM");
-
             int hour = 0;
             for (int j = 0; j < DbSize; j++) {
                 if (MainActivity.ENABLE_LOGS)
                     Log.v("Pete", "add - time: " + Time_game[j]);
                 series.add(hour++,  Time_game[j]);
+
+                //HTMLsourceString = "<font color=#00FF00><b> <u>" + Integer.toString(Time_game[j]) + "</u> </b></font>";
+                //series.addAnnotation(Html.fromHtml(HTMLsourceString).toString(), j,  Time_game[j] + 1);
                 series.addAnnotation(Integer.toString(Time_game[j]), j,  Time_game[j] + 1);
                 renderer.setAnnotationsTextSize(AnnotatFont);
 

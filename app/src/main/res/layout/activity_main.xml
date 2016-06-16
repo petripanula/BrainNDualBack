@@ -76,6 +76,7 @@
 
         <ImageButton
             android:id="@+id/matchpic"
+            android:setSoundEffectsEnabled="false"
             android:layout_weight="1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -113,6 +114,7 @@
 
         <ImageButton
             android:id="@+id/matchsound"
+            android:setSoundEffectsEnabled="false"
             android:layout_weight="1"
             android:layout_toLeftOf="@+id/mode"
             android:layout_width="wrap_content"

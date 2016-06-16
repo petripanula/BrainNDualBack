@@ -120,12 +120,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             time[i] = cursor.getInt(2);
             dbdate[i] = cursor.getString(3);
 
-            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getInt(0) id: " + cursor.getInt(0));
-            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getInt(2) timr: " + cursor.getInt(2));
-            if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "cursor.getString(3) dbdate: " + cursor.getString(3));
+            if(MainActivity.ENABLE2_LOGS) Log.d(MainActivity.TAG, "cursor.getInt(0) id: " + cursor.getInt(0));
+            if(MainActivity.ENABLE2_LOGS) Log.d(MainActivity.TAG, "cursor.getInt(2) timr: " + cursor.getInt(2));
+            if(MainActivity.ENABLE2_LOGS) Log.d(MainActivity.TAG, "cursor.getString(3) dbdate: " + cursor.getString(3));
 
             if(cursor.getString(3).equals(date)){
-                if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "Match");
+                if(MainActivity.ENABLE2_LOGS) Log.d(MainActivity.TAG, "Match");
 
                 returnint = cursor.getInt(2);
 

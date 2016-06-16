@@ -3,7 +3,6 @@ package com.braindualxback;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Color;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
@@ -18,14 +17,12 @@ import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.google.android.gms.games.Games;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class ScoresActivity extends AppCompatActivity {
 
-    String Player = "Pete";
+    //String Player = "Pete";
     public static String[] Hiscores;
     public static String[] Players;
     public static long[] Dates;
@@ -133,15 +130,6 @@ public class ScoresActivity extends AppCompatActivity {
         HeaderTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeHeader);
         // add the textview to the linearlayout
         ll.addView(HeaderTextView);
-
-        /*
-        final TextView SpacesTextView = new TextView(this);
-        SpacesTextView.setText("\n");
-        SpacesTextView.setBackgroundColor(TextBackRoundColour);
-        SpacesTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSizeHeader);
-        // add the textview to the linearlayout
-        ll.addView(SpacesTextView);
-        */
 
         if (db.getDBsize()<tablesize){
             tablesize = db.getDBsize();

@@ -68,7 +68,7 @@ public class ChartActivity extends AppCompatActivity {
         if (MainActivity.ENABLE_LOGS) Log.v("Pete", "testint: " + testint);
 
         DisplayMetrics metrics = this.getResources().getDisplayMetrics();
-        float HeaderFont = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 25, metrics);
+        float HeaderFont = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 22, metrics);
         float AxisFont = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 22, metrics);
         float AnnotatFont = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 20, metrics);
 
@@ -185,7 +185,7 @@ public class ChartActivity extends AppCompatActivity {
 
             int Top = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 50, metrics);
             int Bottom = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 10, metrics);
-            int Left = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 40, metrics);
+            int Left = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 50, metrics);
             int Right = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 100, metrics);
 
             mRenderer.setMargins(new int[] { Top, Left, Bottom, Right });
