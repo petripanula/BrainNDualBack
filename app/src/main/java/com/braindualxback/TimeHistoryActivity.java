@@ -137,23 +137,34 @@ public class TimeHistoryActivity extends AppCompatActivity {
                 }
             }
 
-            //XYSeries series = new XYSeries("Testi graafi");
             XYSeries series = new XYSeries("");
+            XYSeries series2 = new XYSeries("");
             XYMultipleSeriesDataset mseries = new XYMultipleSeriesDataset();
 
             // Now we create the renderer
             XYSeriesRenderer renderer = new XYSeriesRenderer();
             renderer.setLineWidth(2);
             renderer.setColor(Color.RED);
-            // Include low and max value
             renderer.setDisplayBoundingPoints(true);
-            // we add point markers
             renderer.setPointStyle(PointStyle.CIRCLE);
             renderer.setPointStrokeWidth(3);
+            renderer.setAnnotationsTextSize(AnnotatFont);
+            renderer.setAnnotationsColor(Color.RED);
+
+            // Now we create the renderer
+            XYSeriesRenderer renderer2 = new XYSeriesRenderer();
+            renderer2.setLineWidth(2);
+            renderer2.setColor(Color.GREEN);
+            renderer2.setDisplayBoundingPoints(true);
+            renderer2.setPointStyle(PointStyle.CIRCLE);
+            renderer2.setPointStrokeWidth(3);
+            renderer2.setAnnotationsTextSize(AnnotatFont);
+            renderer2.setAnnotationsColor(Color.GREEN);
 
 
             XYMultipleSeriesRenderer mRenderer = new XYMultipleSeriesRenderer();
             mRenderer.addSeriesRenderer(renderer);
+            mRenderer.addSeriesRenderer(renderer2);
 
             // We want to avoid black border
             mRenderer.setMarginsColor(Color.argb(0x00, 0xff, 0x00, 0x00)); // transparent margins
@@ -164,17 +175,17 @@ public class TimeHistoryActivity extends AppCompatActivity {
             mRenderer.setYAxisMax(biggest_value + 5);
             mRenderer.setYAxisMin(0);
             mRenderer.setShowGrid(false); // we show the grid
-            mRenderer.setBarSpacing(1);
+            mRenderer.setBarSpacing(0);
             mRenderer.setXAxisMin(-0.5);
             mRenderer.setInScroll(true);
             mRenderer.setZoomEnabled(true, false);
-            mRenderer.setChartTitle("Daily Effective Playtime history in minutes (nBack>1)");
+            mRenderer.setChartTitle("Daily Effective Playtime History In Minutes (nBack>1)");
             mRenderer.setChartTitleTextSize(HeaderFont);
             mRenderer.setYLabelsAlign(Paint.Align.RIGHT);
             mRenderer.setAxisTitleTextSize(AxisFont);
-            //mRenderer.setXTitle("Date");
-            //mRenderer.setYTitle("Points");
             mRenderer.setLabelsTextSize(AxisFont);
+
+            mRenderer.setBarWidth(100);
 
             if(DbSize>5)
                 mRenderer.setXLabelsAngle(90);
@@ -186,33 +197,29 @@ public class TimeHistoryActivity extends AppCompatActivity {
 
             mRenderer.setMargins(new int[] { Top, Left, Bottom, Right });
 
-            int hour = 0;
+            int point = 0;
             for (int j = 0; j < DbSize; j++) {
                 if (MainActivity.ENABLE_LOGS)
                     Log.v("Pete", "add - time: " + Time_game[j]);
-                series.add(hour++,  Time_game[j]);
 
-                //HTMLsourceString = "<font color=#00FF00><b> <u>" + Integer.toString(Time_game[j]) + "</u> </b></font>";
-                //series.addAnnotation(Html.fromHtml(HTMLsourceString).toString(), j,  Time_game[j] + 1);
-                series.addAnnotation(Integer.toString(Time_game[j]), j,  Time_game[j] + 1);
-                renderer.setAnnotationsTextSize(AnnotatFont);
-
-                //This doesn't work like I thought....
-                if(Time_game[j]<20)
-                    renderer.setAnnotationsColor(Color.RED);
-                else
-                    renderer.setAnnotationsColor(Color.GREEN);
+                if(Time_game[j]<20) {
+                    series.add(point++, Time_game[j]);
+                    series.addAnnotation(Integer.toString(Time_game[j]), j,  Time_game[j] + 1);
+                }
+                else {
+                    series2.add(point++, Time_game[j]);
+                    series2.addAnnotation(Integer.toString(Time_game[j]), j,  Time_game[j] + 1);
+                }
 
                 String ModDate = Dates_game[j].substring(0, Dates_game[j].length() - 5);
-                //Date resultdate = new Date(Dates_game[j]);
                 mRenderer.addXTextLabel(j, ModDate);
                 mRenderer.setXLabels(0);
             }
 
             mseries.addSeries(series);
+            mseries.addSeries(series2);
 
-            //GraphicalView chartView = ChartFactory.getLineChartView(this, mseries, mRenderer);
-            GraphicalView chartView = ChartFactory.getBarChartView(this, mseries, mRenderer, BarChart.Type.DEFAULT);
+            GraphicalView chartView = ChartFactory.getBarChartView(this, mseries, mRenderer, BarChart.Type.STACKED);
 
             LinearLayout ll = (LinearLayout) findViewById(R.id.charttime);
 
