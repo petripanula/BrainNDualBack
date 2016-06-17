@@ -89,7 +89,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public static final int _100PERCENT = 2;
 
     public static final int PROPABILITY = 5;
-    int CollectedXPpoints = 0;
+    public static int CollectedXPpoints = 0;
 
     public boolean isPaused = false;
     public static boolean MyisResumed = true;
@@ -258,8 +258,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
@@ -386,7 +384,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 registerReceiver(mBroadcastReceiver, broadcastFilter);
 
                 // IAB is fully set up. Now, let's get an inventory of stuff we own.
-                Log.d(TAG, "Setup successful. Querying inventory.");
+                if(ENABLE_LOGS) Log.d(TAG, "Setup successful. Querying inventory.");
                 try {
                     mIabHelper.queryInventoryAsync(mGotInventoryListener);
                 } catch (IabHelper.IabAsyncInProgressException e) {
@@ -432,6 +430,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         NewArray = new int[NbrOfPictures];
 
+        //We do not need array here...
         for(int l=0; l<NbrOfPictures; l++) {
             NewArray[l] = Pictures.BACKGROUND_IDS[1];
         }
@@ -578,15 +577,15 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         for(int i=0;i<nBacks;i++) {
             increaseNback[i] = savedInstanceState.getInt("increaseNback_" + i);
             PlayResult[i] = savedInstanceState.getInt("PlayResult_" + i);
-            if(ENABLE_LOGS) Log.v("Pete", "increaseNback[i]: " + increaseNback[i]);
-            if(ENABLE_LOGS) Log.v("Pete", "PlayResult[i]: " + PlayResult[i]);
+            if(ENABLE2_LOGS) Log.v("Pete", "increaseNback[i]: " + increaseNback[i]);
+            if(ENABLE2_LOGS) Log.v("Pete", "PlayResult[i]: " + PlayResult[i]);
         }
 
         for(int l=0; l<GamePointsLevel.length; l++) {
             GamePointsLevel[l][0] = savedInstanceState.getInt("GamePointsLevel_" + l +"_0");
             GamePointsLevel[l][1] = savedInstanceState.getInt("GamePointsLevel_" + l +"_1");
-            if(ENABLE_LOGS) Log.v("Pete", "GamePointsLevel[l][0]: " + GamePointsLevel[l][0]);
-            if(ENABLE_LOGS) Log.v("Pete", "GamePointsLevel[l][1]: " + GamePointsLevel[l][1]);
+            if(ENABLE2_LOGS) Log.v("Pete", "GamePointsLevel[l][0]: " + GamePointsLevel[l][0]);
+            if(ENABLE2_LOGS) Log.v("Pete", "GamePointsLevel[l][1]: " + GamePointsLevel[l][1]);
         }
 
         if(ENABLE_LOGS) Log.v("Pete", "nBackWhenPlaying: " + nBackWhenPlaying);
@@ -647,13 +646,15 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             if(ENABLE_LOGS) Log.v("Pete", "MainActivity onResume - recreate...");
             RestartRequired = false;
 
-            for(int l=0; l<mImageViews.length; l++) {
+            for(int l=NbrOfPictures; l<mImageViews.length; l++) {
                 mImageViews[l] = null;
             }
 
             if (Build.VERSION.SDK_INT >= 11) {
+                if(ENABLE_LOGS) Log.v("Pete", "onResume - recreate()");
                 recreate();
             } else {
+                if(ENABLE_LOGS) Log.v("Pete", "onResume -(Build.VERSION.SDK_INT < 11");
                 Intent intent = getIntent();
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 finish();
@@ -754,6 +755,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void Start(View arg0){
         if (ENABLE_LOGS) Log.d("Pete", "Start...");
 
+        SetScreenOn();
+
         //Just make sure we do not start with nBack zero???
         if(nBack==0) {
             nBack = 1;
@@ -845,6 +848,9 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public void Stop(View arg0){
         if(ENABLE_LOGS) Log.v("Pete", "Stop clicked...");
+
+        ClearScreenOn();
+
         mTracker.send(new HitBuilders.EventBuilder().setCategory("Action").setAction("Stop Button Pressed").build());
 
         PreventDoubleStart = false;
@@ -1277,6 +1283,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void ContinuePlayingTimer(long startfromthis_ms, String caller) {
         if(ENABLE_LOGS) Log.v("Pete", "In ContinuePlayingTimer - nBack: " + nBack + " caller: " + caller);
 
+        SetScreenOn();
+
         PreventDoubleStart = true;
         PreventDoubleStart(15000);
 
@@ -1483,7 +1491,6 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         int color = Color.parseColor("#FFFFFF");
 
         for (ImageView mImageView : mImageViews) {
-
             if (mImageView != null)
                 mImageView.setColorFilter(color);
         }
@@ -1821,6 +1828,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 } else {
                     message = " Game over! ";
                     message2 = " Points from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
+
+                    ClearScreenOn();
                 }
             }
             if (increaseNback[nBack] == 2) {
@@ -1850,6 +1859,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                     if(nBack==1)
                         message2 = " Points from this level: " + GamePointsLevel[nBack][0] + " TotalPoints: " + GetPlayerPoint() + " ";
 
+                    ClearScreenOn();
                 }
             }
 
@@ -2201,7 +2211,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     // Listener that's called when we finish querying the items and subscriptions we own
     IabHelper.QueryInventoryFinishedListener mGotInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
         public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
-            Log.d(TAG, "Query inventory finished.");
+            if(ENABLE_LOGS) Log.d(TAG, "Query inventory finished.");
 
             // Have we been disposed of in the meantime? If so, quit.
             if (mIabHelper == null) return;
@@ -2212,7 +2222,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 return;
             }
 
-            Log.d(TAG, "Query inventory was successful.");
+            if(ENABLE_LOGS) Log.d(TAG, "Query inventory was successful.");
 
             /*
              * Check for items we own. Notice that for each purchase, we check
@@ -2223,10 +2233,10 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             // Do we have the premium upgrade?
             Purchase premiumPurchase = inventory.getPurchase(SKU_PREMIUM);
             mIsPremium = (premiumPurchase != null && verifyDeveloperPayload(premiumPurchase));
-            Log.d(TAG, "User is " + (mIsPremium ? "PREMIUM" : "NOT PREMIUM"));
+            if(ENABLE_LOGS) Log.d(TAG, "User is " + (mIsPremium ? "PREMIUM" : "NOT PREMIUM"));
 
             if(mIsPremium){
-                Log.d(TAG, "Adding 666 to testint...");
+                if(ENABLE_LOGS) Log.d(TAG, "Adding 666 to testint...");
                 testint = 666;
                 saveLocal();
             }
@@ -2249,14 +2259,14 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             // renewing
             mSubscribedToInfiniteGas = (gasMonthly != null && verifyDeveloperPayload(gasMonthly))
                     || (gasYearly != null && verifyDeveloperPayload(gasYearly));
-            Log.d(TAG, "User " + (mSubscribedToInfiniteGas ? "HAS" : "DOES NOT HAVE")
+            if(ENABLE_LOGS) Log.d(TAG, "User " + (mSubscribedToInfiniteGas ? "HAS" : "DOES NOT HAVE")
                     + " infinite gas subscription.");
             if (mSubscribedToInfiniteGas) mTank = TANK_MAX;
 
             // Check for gas delivery -- if we own gas, we should fill up the tank immediately
             Purchase gasPurchase = inventory.getPurchase(SKU_GAS);
             if (gasPurchase != null && verifyDeveloperPayload(gasPurchase)) {
-                Log.d(TAG, "We have gas. Consuming it.");
+                if(ENABLE_LOGS) Log.d(TAG, "We have gas. Consuming it.");
                 try {
                     mIabHelper.consumeAsync(inventory.getPurchase(SKU_GAS), mConsumeFinishedListener);
                 } catch (IabAsyncInProgressException e) {
@@ -2274,7 +2284,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     @Override
     public void receivedBroadcast() {
         // Received a broadcast notification that the inventory of items has changed
-        Log.d(TAG, "Received broadcast notification. Querying inventory.");
+        if(ENABLE_LOGS) Log.d(TAG, "Received broadcast notification. Querying inventory.");
         try {
             mIabHelper.queryInventoryAsync(mGotInventoryListener);
         } catch (IabAsyncInProgressException e) {
@@ -2324,7 +2334,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     // User clicked the "Upgrade to Premium" button.
     public void onUpgradePremium() {
-        Log.d(TAG, "Upgrade button clicked; launching purchase flow for upgrade.");
+        if(ENABLE_LOGS) Log.d(TAG, "Upgrade button clicked; launching purchase flow for upgrade.");
         setWaitScreen(true);
 
         /*  for security, generate your payload here for verification. See the comments on
@@ -2407,7 +2417,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     boolean verifyDeveloperPayload(Purchase p) {
         String payload = p.getDeveloperPayload();
 
-        Log.d(TAG, "payload: " + payload);
+        if(ENABLE_LOGS) Log.d(TAG, "payload: " + payload);
 
         /*
          * verify that the developer payload of the purchase is correct. It will be
@@ -2438,7 +2448,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     // Callback for when a purchase is finished
     IabHelper.OnIabPurchaseFinishedListener mPurchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
         public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
-            Log.d(TAG, "Purchase finished: " + result + ", purchase: " + purchase);
+            if(ENABLE_LOGS) Log.d(TAG, "Purchase finished: " + result + ", purchase: " + purchase);
 
             // if we were disposed of in the meantime, quit.
             if (mIabHelper == null) return;
@@ -2454,12 +2464,12 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 return;
             }
 
-            Log.d(TAG, "Purchase successful.");
+            if(ENABLE_LOGS) Log.d(TAG, "Purchase successful.");
 
             switch (purchase.getSku()) {
                 case SKU_GAS:
                     // bought 1/4 tank of gas. So consume it.
-                    Log.d(TAG, "Purchase is gas. Starting gas consumption.");
+                    if(ENABLE_LOGS) Log.d(TAG, "Purchase is gas. Starting gas consumption.");
                     try {
                         mIabHelper.consumeAsync(purchase, mConsumeFinishedListener);
                     } catch (IabAsyncInProgressException e) {
@@ -2470,14 +2480,14 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                     break;
                 case SKU_PREMIUM:
                     // bought the premium upgrade!
-                    Log.d(TAG, "Purchase is premium upgrade. Congratulating user.");
+                    if(ENABLE_LOGS) Log.d(TAG, "Purchase is premium upgrade. Congratulating user.");
                     alert("Thank you for upgrading to premium!");
                     mIsPremium = true;
                     //updateUi();
                     setWaitScreen(false);
 
                     if (mIsPremium) {
-                        Log.d(TAG, "OnIabPurchaseFinishedListener - Adding 666 to testint...");
+                        if(ENABLE_LOGS) Log.d(TAG, "OnIabPurchaseFinishedListener - Adding 666 to testint...");
                         testint = 666;
                         RestartRequired = true;
                         saveLocal();
@@ -2486,7 +2496,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 case SKU_INFINITE_GAS_MONTHLY:
                 case SKU_INFINITE_GAS_YEARLY:
                     // bought the infinite gas subscription
-                    Log.d(TAG, "Infinite gas subscription purchased.");
+                    if(ENABLE_LOGS) Log.d(TAG, "Infinite gas subscription purchased.");
                     alert("Thank you for subscribing to infinite gas!");
                     mSubscribedToInfiniteGas = true;
                     mAutoRenewEnabled = purchase.isAutoRenewing();
@@ -2502,7 +2512,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     // Called when consumption is complete
     IabHelper.OnConsumeFinishedListener mConsumeFinishedListener = new IabHelper.OnConsumeFinishedListener() {
         public void onConsumeFinished(Purchase purchase, IabResult result) {
-            Log.d(TAG, "Consumption finished. Purchase: " + purchase + ", result: " + result);
+            if(ENABLE_LOGS) Log.d(TAG, "Consumption finished. Purchase: " + purchase + ", result: " + result);
 
             // if we were disposed of in the meantime, quit.
             if (mIabHelper == null) return;
@@ -2513,7 +2523,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             if (result.isSuccess()) {
                 // successfully consumed, so we apply the effects of the item in our
                 // game world's logic, which in our case means filling the gas tank a bit
-                Log.d(TAG, "Consumption successful. Provisioning.");
+                if(ENABLE_LOGS) Log.d(TAG, "Consumption successful. Provisioning.");
                 mTank = mTank == TANK_MAX ? TANK_MAX : mTank + 1;
 
                 //
@@ -2525,7 +2535,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             }
             //updateUi();
             setWaitScreen(false);
-            Log.d(TAG, "End consumption flow.");
+            if(ENABLE_LOGS) Log.d(TAG, "End consumption flow.");
         }
     };
 
@@ -2549,7 +2559,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d(TAG, "onDestroy......");
+        if(ENABLE_LOGS) Log.d(TAG, "onDestroy......");
 
         // very important:
         if (mBroadcastReceiver != null) {
@@ -2557,7 +2567,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         }
 
         // very important:
-        Log.d(TAG, "Destroying helper.");
+        if(ENABLE_LOGS) Log.d(TAG, "Destroying helper.");
         if (mIabHelper != null && RegisteredInAppServices) {
             mIabHelper.disposeWhenFinished();
             mIabHelper = null;
@@ -2654,12 +2664,14 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         boolean fullLoad = false;  // set to 'true' to reload all achievements (ignoring cache)
 
-        //Zero XP points...
-        CollectedXPpoints = 0;
         // load achievements
         Games.Achievements.load(mHelper.getApiClient(), fullLoad).setResultCallback(new ResultCallback<Achievements.LoadAchievementsResult>() {
             @Override
             public void onResult(Achievements.LoadAchievementsResult loadAchievementsResult) {
+
+                //Zero XP points...
+                CollectedXPpoints = 0;
+
                 for (Achievement achievement : loadAchievementsResult.getAchievements()) {
 
                     // here you can work with the achievement objects
@@ -2672,6 +2684,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
                     }
                 }
+
+                if (MainActivity.ENABLE_LOGS)Log.v("Pete", "CollectedXPpoints: " + CollectedXPpoints);
 
                 if(CollectedXPpoints>0)
                     Games.Leaderboards.submitScore(mHelper.getApiClient(), AchievementBoard, CollectedXPpoints);
@@ -2706,5 +2720,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         TextHeader.setTextColor(Color.WHITE);
         String message = "" + myNumberOfPicturesToShow;
         TextHeader.setText(message);
+    }
+
+    public void SetScreenOn(){
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
+    public void ClearScreenOn(){
+        getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 }

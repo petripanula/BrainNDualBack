@@ -13,10 +13,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.GridView;
 
-
-/**
- * Created by ppanula on 15.9.2015.
- */
 public class ImageAdapter extends BaseAdapter {
 
     private Context mContext;
@@ -47,8 +43,6 @@ public class ImageAdapter extends BaseAdapter {
 
     // create a new ImageView for each item referenced by the Adapter
     public View getView(int position, View convertView, ViewGroup parent) {
-        String newString;
-        int in;
 
         if(MainActivity.ENABLE2_LOGS) Log.d(MainActivity.TAG, "public View getView. position: " + position);
 
@@ -58,15 +52,28 @@ public class ImageAdapter extends BaseAdapter {
             imageView = new ImageView(mContext);
             imageView.setLayoutParams(new GridView.LayoutParams(picture_size, picture_size));
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            ///imageView.setPadding(6, 6, 6, 6);
             imageView.setPadding(1, 1, 1, 1);
 
             if  (MainActivity.mImageViews[position] == null) {
-                if(MainActivity.ENABLE2_LOGS) Log.d(MainActivity.TAG, "imageView.setId: " + position);
-                MainActivity.mImageViews[position] = imageView;
+                if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "imageView.setId: " + position);
 
                 //imageView.setImageBitmap(decodeSampledBitmapFromResource(imageView.getResources(), MainActivity.NewArray[0], picture_size, picture_size));
-                imageView.setImageResource(MainActivity.NewArray[0]);
+                //imageView.setImageResource(MainActivity.NewArray[0]);
+
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inDither = false;
+                options.inJustDecodeBounds = false;
+                options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+                options.inSampleSize = 3;
+
+                Bitmap icon = BitmapFactory.decodeResource(parent.getResources(),
+                        MainActivity.NewArray[0],options);
+
+                imageView.setImageBitmap(icon);
+
+                MainActivity.mImageViews[position] = imageView;
+            }else{
+                if(MainActivity.ENABLE_LOGS) Log.d(MainActivity.TAG, "(MainActivity.mImageViews[position] != null?? position: " + position);
             }
 
             imageView.setId(position);
