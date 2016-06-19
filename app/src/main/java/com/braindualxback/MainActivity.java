@@ -73,6 +73,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public static final boolean ENABLE2_LOGS = false;
     public static final String TAG = "Pete";
 
+    public static String ImageFilterColour = "#add8e6";
+
     boolean DisableAdds = false;
     boolean RestartRequired = false;
     int PlayDBInitialized = 0;
@@ -1247,7 +1249,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                 if(ENABLE_LOGS) Log.v("Pete", "ClearRedTimer onFinish...");
                 ClearRedTimerRunning = false;
 
-                int color = Color.parseColor("#FFFFFF");
+                int color = Color.parseColor(ImageFilterColour);
 
                 if(random_nbr>=0)
                     mImageViews[random_nbr].setColorFilter(color);
@@ -1488,7 +1490,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     public void InitAll(String caller){
         if(MainActivity.ENABLE_LOGS) Log.v("Pete", "InitAll - Caller: " + caller);
 
-        int color = Color.parseColor("#FFFFFF");
+        int color = Color.parseColor(ImageFilterColour);
 
         for (ImageView mImageView : mImageViews) {
             if (mImageView != null)

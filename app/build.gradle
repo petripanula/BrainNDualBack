@@ -7,8 +7,8 @@ android {
         applicationId "com.braindualxback"
         minSdkVersion 17
         targetSdkVersion 17
-        versionCode 45
-        versionName "ECHO"
+        versionCode 47
+        versionName "GOLF"
     }
     buildTypes {
         debug {

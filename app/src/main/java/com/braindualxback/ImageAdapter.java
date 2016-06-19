@@ -81,8 +81,9 @@ public class ImageAdapter extends BaseAdapter {
             imageView = (ImageView) convertView;
         }
 
-        int color = Color.parseColor("#FFFFFF");
+        int color = Color.parseColor(MainActivity.ImageFilterColour);
         imageView.setColorFilter(color);
+        //imageView.setAnimation();
 
         return imageView;
     }
