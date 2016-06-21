@@ -50,7 +50,7 @@ public class ScoresActivity extends AppCompatActivity {
         String HTMLsourceString;
         int FontSizeHeader = 14;
         int FontSize = 12;
-        int tablesize = 20;
+        int tablesize = 40;
         int TextBackRoundColour = 0xaa000000;
 
         DatabaseHandler db = new DatabaseHandler(this);
@@ -186,7 +186,7 @@ public class ScoresActivity extends AppCompatActivity {
         // add the textview to the linearlayout
         ll.addView(HeaderTextView2);
 
-        tablesize = 20;
+        tablesize = 40;
         if (db.getDBsize_game()<tablesize){
             tablesize = db.getDBsize_game();
         }

@@ -39,7 +39,9 @@ public class ChartActivity extends AppCompatActivity {
 
     SecurePreferences preferences;
     int testint;
+    int testint4;
     int DbSize;
+    Boolean Subscribed = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +64,7 @@ public class ChartActivity extends AppCompatActivity {
 
         preferences = new SecurePreferences(this, "my-preferences", "SometopSecretKey1235", true);
         testint = Integer.parseInt(preferences.getIntString("testint"));
+        testint4 = Integer.parseInt(preferences.getIntString("testint4"));
 
         if (MainActivity.ENABLE_LOGS) Log.v("Pete", "testint: " + testint);
 
@@ -81,8 +84,12 @@ public class ChartActivity extends AppCompatActivity {
             DoNotShowCraph = false;
         }
 
-        if(testint!=666 && DbSize>=10){
-            HTMLsourceString = "<font color=#00FF00><b> Buy Premium Subscription to show more progress! </b></font>";
+        if(testint==665 || testint4==669){
+            Subscribed = true;
+        }
+
+        if(!Subscribed && DbSize>=10){
+            HTMLsourceString = "<font color=#00FF00><b> Buy Progress Charts to show more progress! </b></font>";
             DoNotShowCraph = true;
         }
 

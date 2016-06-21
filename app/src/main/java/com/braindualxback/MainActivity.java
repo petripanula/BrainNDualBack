@@ -10,6 +10,7 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.CountDownTimer;
@@ -23,7 +24,6 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -35,17 +35,13 @@ import android.widget.NumberPicker;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import static java.lang.Math.sqrt;
-
 import com.braindualxback.util.IabBroadcastReceiver;
 import com.braindualxback.util.IabHelper;
 import com.braindualxback.util.IabHelper.IabAsyncInProgressException;
 import com.braindualxback.util.IabResult;
 import com.braindualxback.util.Inventory;
 import com.braindualxback.util.Purchase;
-
-
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
@@ -61,8 +57,8 @@ import com.google.android.gms.games.Player;
 import com.google.android.gms.games.achievement.Achievement;
 import com.google.android.gms.games.achievement.Achievements;
 import com.google.example.games.basegameutils.BaseGameActivity;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -75,9 +71,21 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public static String ImageFilterColour = "#add8e6";
 
+    public static PopupWindow popupWindow;
+    public static Boolean visible1 = false;
+    public static Boolean visible2 = false;
+    public static Boolean visible3 = false;
+
+    public  static int BuyButtonType = 0;
+    boolean RemoveBuyButton = false;
     boolean DisableAdds = false;
     boolean RestartRequired = false;
     int PlayDBInitialized = 0;
+
+    public static String price_premium = "NA";
+    public static String all_achievements = "NA";
+    public static String enable_all = "NA";
+    public static String remove_ads = "NA";
 
     static final String STATE_NBACK = "playernback";
     //static final String STATE_LEVEL = "playerLevel";
@@ -92,6 +100,8 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public static final int PROPABILITY = 5;
     public static int CollectedXPpoints = 0;
+    public static int NbrOfUnlockedAchievements = 0;
+    public static final int MAX_FREE_ACHIEVEMENTS = 30;
 
     public boolean isPaused = false;
     public static boolean MyisResumed = true;
@@ -99,7 +109,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     String GameLeaderBoard;
     String AchievementBoard;
     boolean PushLeaderScore = false;
-    boolean ContinuePlaying = true;
+    public static boolean ContinuePlaying = true;
     //public static int GamePoints = 0;
     public static int[][] GamePointsLevel = new int[nBacks+1][2];
     int round;
@@ -110,9 +120,13 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     int Soundtheme;
 
     int testint;
+    int testint2;
+    int testint3;
+    int testint4;
+
     int devstring_int = 0;
 
-    public static Boolean WantToBuy = false;
+    //public static Boolean WantToBuy = false;
 
     String[][][] nBackAchievementID = new String[nBacks][Areas][Levels];
     public static boolean[][][] mnBackAchievement = new boolean[nBacks][Areas][Levels];
@@ -148,7 +162,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     private static MediaPlayer mp;
     private static MediaPlayer mp_click;
 
-    PopupWindow popupWindow;
+    //public static PopupWindow popupWindow;
     String PopUpmessage="NA";
     String playername;
     Boolean EnableClickSounds;
@@ -203,14 +217,21 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
     // Will the subscription auto-renew?
     boolean mAutoRenewEnabled = false;
 
-    // Does the user have the premium upgrade?
-    boolean mIsPremium = false;
+    // Does the user have the premium upgrade - This is progress chart?
+    boolean mIsPremium = false; //665
+    boolean mEnableAll = false; //669
+    boolean mRemoveAds = false; //668
+    boolean mEnableAllAchievements = false; //667
 
     // Does the user have an active subscription to the infinite laugh?
     public static boolean mSubscribedToInfiniteLaugh = false;
 
     // SKUs for our products: the premium upgrade (non-consumable) and gas (consumable)
     static final String SKU_PREMIUM = "premium";
+    static final String SKU_ALL_ACHIEVEMENTS = "all_achievements";
+    static final String SKU_ENABLE_ALL = "enable_all";
+    static final String SKU_REMOVE_ADS = "remove_ads";
+
     static final String SKU_GAS = "gas";
 
     // Tracks the currently owned infinite gas SKU, and the options in the Manage dialog
@@ -278,12 +299,27 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         ReadPreferences();
 
-        if(devstring_int==666){
-            testint = 666;
+        loadLocal();
+
+        if(devstring_int==665){
+            testint = devstring_int;
             saveLocal();
         }
 
-        loadLocal();
+        if(devstring_int==667){
+            testint2 = devstring_int;
+            saveLocal();
+        }
+
+        if(devstring_int==668){
+            testint3 = devstring_int;
+            saveLocal();
+        }
+
+        if(devstring_int==669){
+            testint4 = devstring_int;
+            saveLocal();
+        }
 
         if(PlayDBInitialized==0){
             if(ENABLE_LOGS) Log.d(TAG, "PlayDBInitialize....");
@@ -296,18 +332,39 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             saveLocal();
         }
 
+        //For Old Subscriptions
+        if(testint==666){
+            testint4=669;
+            saveLocal();
+        }
+
+        //All Features bought...
+        if(testint==665 && testint2==667 && testint3==668){
+            testint4=669;
+            saveLocal();
+        }
+
         if(ENABLE_LOGS) Log.d(TAG, "testint: " + testint);
 
-        if(testint==666){
-            if(ENABLE_LOGS) Log.d(TAG, "App is purchased!!!");
+        //All Features enables or Ads Removed!!
+        if(testint4==669 || testint3==668){
+            if(ENABLE_LOGS) Log.d(TAG, "All Features or Disbald Ads!!!");
             mSubscribedToInfiniteLaugh=true;
             mSubscribedToInfiniteGas = true;
-            mIsPremium = true;
+
+            mEnableAll = true; //669
+            mRemoveAds = true; //668
+
+            //This is now Enable Progress Chart....
+            //mIsPremium = true;
             DisableAdds = true;
+
+            if(testint4==669)
+                RemoveBuyButton = true;
         }
 
         findViewById(R.id.adView).setVisibility(DisableAdds ? View.GONE : View.VISIBLE);
-        findViewById(R.id.buy).setVisibility(DisableAdds ? View.GONE : View.VISIBLE);
+        findViewById(R.id.buy).setVisibility(RemoveBuyButton ? View.GONE : View.VISIBLE);
 
         if(!DisableAdds) {
 
@@ -352,8 +409,9 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         if(ENABLE_LOGS) Log.d(TAG, "Creating IAB helper.");
         mIabHelper = new IabHelper(this, base64EncodedPublicKey);
 
+        //TODO
         // enable debug logging (for a production application, you should set this to false).
-        mIabHelper.enableDebugLogging(true);
+        mIabHelper.enableDebugLogging(false);
 
         // Start setup. This is asynchronous and the specified listener
         // will be called once setup completes.
@@ -387,8 +445,11 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
                 // IAB is fully set up. Now, let's get an inventory of stuff we own.
                 if(ENABLE_LOGS) Log.d(TAG, "Setup successful. Querying inventory.");
+
+            String[] moreSkus = {SKU_PREMIUM, SKU_ALL_ACHIEVEMENTS,SKU_REMOVE_ADS,SKU_ENABLE_ALL};
+
                 try {
-                    mIabHelper.queryInventoryAsync(mGotInventoryListener);
+                    mIabHelper.queryInventoryAsync(true, Arrays.asList(moreSkus),Arrays.asList(moreSkus),mGotInventoryListener);
                 } catch (IabHelper.IabAsyncInProgressException e) {
                     complain("Error querying inventory. Another async operation in progress.");
                 }
@@ -631,6 +692,11 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         InitAll("onResume");
         setWaitScreen(false);
         SetHeader(nBack);
+
+        if (popupWindow != null && popupWindow.isShowing()) {
+            if(ENABLE_LOGS) Log.v("Pete", "MainActivity onResume - dismiss popup...");
+            popupWindow.dismiss();
+        }
 
         if(!manualmode){
             //InitPlayModeParam();
@@ -1004,9 +1070,22 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public void onShowAchievementsRequested(View arg0){
         if(ENABLE_LOGS) Log.v("Pete", "onShowAchievementsRequested clicked...");
+        Boolean ThisIsPurchased = false;
 
         if (isSignedIn()) {
-            startActivityForResult(Games.Achievements.getAchievementsIntent(getApiClient()),RC_UNUSED);
+
+            //All Features or only Achievements
+            if(testint4==669 || testint2==667){
+                ThisIsPurchased = true;
+            }
+
+            if(NbrOfUnlockedAchievements > MAX_FREE_ACHIEVEMENTS && !ThisIsPurchased){
+                showAlert(getString(R.string.achievements_not_available2));
+            }else
+                startActivityForResult(Games.Achievements.getAchievementsIntent(getApiClient()),RC_UNUSED);
+
+            CollectAchievementPoints();
+
         } else {
             showAlert(getString(R.string.achievements_not_available));
             View b_out = findViewById(R.id.signin);
@@ -1125,7 +1204,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
                 if(ENABLE_LOGS) Log.v("Pete", "After: increaseNback["+nBack+"]: " + increaseNback[nBack]);
 
-                if (ResultPercent>=50){
+                if (ResultPercent>=75){
                     //We Play only once the first level
                     if(nBack==1)
                         PlayResult[nBack]++;
@@ -1550,89 +1629,156 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         NbrOfPictures = Integer.parseInt(areasize) * Integer.parseInt(areasize);
     }
 
+
     public void ShowPopUp_Buy(){
         if (ENABLE_LOGS) Log.d("Pete", "ShowPopUp_Buy....");
 
-        Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
+        BuyButtonType = 1;
+
+        //Not SignedIn so can't know the prices......
+        if (!isSignedIn()) {
+            showAlert(getString(R.string.purchaes_not_available));
+            View b_out = findViewById(R.id.signin);
+            b_out.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        visible1 = findViewById(R.id.horizontalview).getVisibility() == View.VISIBLE;
+        visible2 = findViewById(R.id.linearview).getVisibility() == View.VISIBLE;
+        visible3 = findViewById(R.id.undergrid).getVisibility() == View.VISIBLE;
+
+        ReturnStateButtons(false,false,false);
 
         int FontSize = 16;
-        int TextBackRoundColour = 0xaa000000;
-
-        ImageButton justfind;
-
         // POPUP WINDOW STARTS //
-
         LayoutInflater layoutInflater  = (LayoutInflater)getBaseContext().getSystemService(LAYOUT_INFLATER_SERVICE);
 
         //just avoiding compiler warning...
-        final ViewGroup nullParent = null;
-        View popupView = layoutInflater.inflate(R.layout.popup, nullParent);
+        //final ViewGroup nullParent = null;
+        View popupView = layoutInflater.inflate(R.layout.popup, null);
 
 
-        // final PopupWindow popupWindow;
-        popupWindow = new PopupWindow(popupView, ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
-        popupWindow.setFocusable(true);
-        popupWindow.setOutsideTouchable(false);
-        popupWindow.setHeight(ActionBar.LayoutParams.WRAP_CONTENT);
-        popupWindow.setWidth(ActionBar.LayoutParams.WRAP_CONTENT);
+        popupWindow = new PopupWindow(popupView, ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT,false);
 
-        LinearLayout ll = (LinearLayout)popupView.findViewById(R.id.popup_ll);
+         LinearLayout ll = (LinearLayout)popupView.findViewById(R.id.popup_ll);
 
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        String message = "Enable All Achievements (" + all_achievements + ")";
+        Button buy = new Button(this);
+        LinearLayout.LayoutParams params3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        params3.setMargins(5,50,5,10);
+        buy.setLayoutParams(params3);
+        buy.setText(message);
+        buy.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+        buy.setBackgroundResource(R.drawable.button_info_page);
+        buy.setTextColor(Color.WHITE);
+        ll.addView(buy, params3);
 
-        final TextView EmptyRowView = new TextView(this);
-        EmptyRowView.setText("\n");
-        EmptyRowView.setGravity(Gravity.CENTER);
-        EmptyRowView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
-        EmptyRowView.setTypeface(EmptyRowView.getTypeface(), Typeface.BOLD);
-        ll.addView(EmptyRowView,params);
+        if(testint2==667 || testint4==669){
+            buy.setEnabled(false);
+            buy.setAlpha(0.5f);
+        }
 
-        final TextView rowTextView = new TextView(this);
-        String message = " Remove Ads And Enable Progress Chart! ";
-        rowTextView.setText(message);
-        rowTextView.setGravity(Gravity.CENTER);
-        rowTextView.setTextColor(Color.WHITE);
-        rowTextView.setBackgroundColor(TextBackRoundColour);
-        rowTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
-        rowTextView.setTypeface(rowTextView.getTypeface(), Typeface.BOLD);
-        ll.addView(rowTextView,params);
+        buy.setOnClickListener(new Button.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                if (ENABLE_LOGS) Log.v("Pete", "ShowPopUp onClick - ENABLE ALL ACHIEVEMENTS");
+                //MainActivity.SetBuyInWanted();
+                popupWindow.dismiss();
+                ReturnStateButtons(visible1,visible2,visible3);
+                onUpgradeAllAchivements();
+            }
+        });
 
-        final TextView rowTextView1 = new TextView(this);
-        rowTextView1.setText("");
-        rowTextView1.setGravity(Gravity.CENTER);
-        rowTextView1.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
-        rowTextView1.setTypeface(rowTextView1.getTypeface(), Typeface.BOLD);
-        ll.addView(rowTextView1,params);
+        message = "Enable Progress Charts (" + price_premium + ")";
+        Button buy1 = new Button(this);
+        LinearLayout.LayoutParams params4 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        params4.setMargins(5,5,5,10);
+        buy1.setLayoutParams(params4);
+        buy1.setText(message);
+        buy1.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+        buy1.setBackgroundResource(R.drawable.button_info_page);
+        buy1.setTextColor(Color.WHITE);
+        ll.addView(buy1, params4);
 
-        final TextView rowTextView2 = new TextView(this);
-        message = " Buy Premium And Support Developer? ";
-        rowTextView2.setText(message);
-        rowTextView2.setGravity(Gravity.CENTER);
-        rowTextView2.setTextColor(Color.WHITE);
-        rowTextView2.setBackgroundColor(TextBackRoundColour);
-        rowTextView2.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
-        rowTextView2.setTypeface(rowTextView2.getTypeface(), Typeface.BOLD);
-        ll.addView(rowTextView2,params);
+        if(testint==665 || testint4==669){
+            buy1.setEnabled(false);
+            buy1.setAlpha(0.5f);
+        }
 
-        final TextView EmptyRowView2 = new TextView(this);
-        EmptyRowView2.setText("\n");
-        EmptyRowView2.setGravity(Gravity.CENTER);
-        EmptyRowView2.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
-        EmptyRowView2.setTypeface(EmptyRowView2.getTypeface(), Typeface.BOLD);
-        ll.addView(EmptyRowView2,params);
+        buy1.setOnClickListener(new Button.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                if (ENABLE_LOGS) Log.v("Pete", "ShowPopUp onClick - ENABLE PROGRESS CHARTS");
+                //MainActivity.SetBuyInWanted();
+                popupWindow.dismiss();
+                ReturnStateButtons(visible1,visible2,visible3);
+                onUpgradePremium();
+            }
+        });
+
+        message = "Remove All Ads (" + remove_ads + ")";
+        Button buy2 = new Button(this);
+        LinearLayout.LayoutParams params5 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        params5.setMargins(5,5,5,10);
+        buy2.setLayoutParams(params5);
+        buy2.setText(message);
+        buy2.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+        buy2.setBackgroundResource(R.drawable.button_info_page);
+        buy2.setTextColor(Color.WHITE);
+        ll.addView(buy2, params5);
+
+        if(testint3==668 || testint4==669){
+            buy2.setEnabled(false);
+            buy2.setAlpha(0.5f);
+        }
+
+        buy2.setOnClickListener(new Button.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                if (ENABLE_LOGS) Log.v("Pete", "ShowPopUp onClick - REMOVE ALL ADS");
+                //MainActivity.SetBuyInWanted();
+                popupWindow.dismiss();
+                ReturnStateButtons(visible1,visible2,visible3);
+                onUpgradeRemoveAds();
+            }
+        });
+
+        message = "Enable All Features (" + enable_all + ")";
+        Button buy4 = new Button(this);
+        LinearLayout.LayoutParams params6 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        params6.setMargins(5,5,5,10);
+        buy4.setLayoutParams(params6);
+        buy4.setText(message);
+        buy4.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
+        buy4.setBackgroundResource(R.drawable.button_info_page);
+        buy4.setTextColor(Color.WHITE);
+        ll.addView(buy4, params6);
+
+        if(testint4==669){
+            buy4.setEnabled(false);
+            buy4.setAlpha(0.5f);
+        }
+
+        buy4.setOnClickListener(new Button.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                if (ENABLE_LOGS) Log.v("Pete", "ShowPopUp onClick - ENABLE ALL FEATURES");
+                //MainActivity.SetBuyInWanted();
+                popupWindow.dismiss();
+                ReturnStateButtons(visible1,visible2,visible3);
+                onUpgradeEnableAllFeatures();
+            }
+        });
 
         message = "CANCEL";
         Button btnDismiss = new Button(this);
         LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        params2.setMargins(5, 5, 5, 10);
+        params2.setMargins(5, 5, 5, 50);
         btnDismiss.setLayoutParams(params2);
         btnDismiss.setText(message);
         btnDismiss.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
         btnDismiss.setBackgroundResource(R.drawable.button_info_page);
         btnDismiss.setTextColor(Color.WHITE);
-
         ll.addView(btnDismiss, params2);
 
         btnDismiss.setOnClickListener(new Button.OnClickListener() {
@@ -1640,45 +1786,42 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             public void onClick(View v) {
                 if (ENABLE_LOGS) Log.v("Pete", "ShowPopUp onClick - CANCEL....");
                 popupWindow.dismiss();
+                ReturnStateButtons(visible1,visible2,visible3);
                 //called_show();
             }
         });
 
-        message = "BUY";
-        Button buy = new Button(this);
-        LinearLayout.LayoutParams params3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        params3.setMargins(5,5,5,10);
-        buy.setLayoutParams(params3);
-        buy.setText(message);
-        buy.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
-        buy.setBackgroundResource(R.drawable.button_info_page);
-        buy.setTextColor(Color.WHITE);
-
-        ll.addView(buy, params3);
-
-        buy.setOnClickListener(new Button.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                if (ENABLE_LOGS) Log.v("Pete", "ShowPopUp onClick - buy....");
-                MainActivity.SetBuyInWanted();
-                popupWindow.dismiss();
-                onUpgradePremium();
-
-            }
-        });
+        popupWindow.setOutsideTouchable(false);
+        popupWindow.setTouchable(true);
+        //popupWindow.setFocusable(false);
+        popupWindow.setBackgroundDrawable(new ColorDrawable());
 
         //Just find some view where we can refer....
-        justfind = (ImageButton)findViewById(R.id.settings);
-        popupWindow.showAtLocation(justfind, Gravity.CENTER, 0, 0);
+
+        View parent = findViewById(R.id.main_activity);
+        popupWindow.showAtLocation(parent, Gravity.CENTER, 0, 0);
+
+
         // POPUP WINDOW ENDS //
     }
 
+
+    /*
     public static void SetBuyInWanted(){
         WantToBuy = true;
     }
+    */
 
     public void ShowPopUp_OK(){
         if (ENABLE_LOGS) Log.d("Pete", "ShowPopUp_OK....");
+
+        BuyButtonType = 2;
+
+        visible1 = findViewById(R.id.horizontalview).getVisibility() == View.VISIBLE;
+        visible2 = findViewById(R.id.linearview).getVisibility() == View.VISIBLE;
+        visible3 = findViewById(R.id.undergrid).getVisibility() == View.VISIBLE;
+
+        ReturnStateButtons(false,false,false);
 
         //Mark the endtime
         timeend = (int)((System.currentTimeMillis()/1000)%3600);
@@ -1703,18 +1846,14 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         // POPUP WINDOW STARTS //
         LayoutInflater layoutInflater  = (LayoutInflater)getBaseContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-        //View popupView = layoutInflater.inflate(R.layout.popup2, null);
+        View popupView = layoutInflater.inflate(R.layout.popup2, null);
 
         //just avoiding compiler warning...
-        final ViewGroup nullParent = null;
-        View popupView = layoutInflater.inflate(R.layout.popup2, nullParent);
+        //final ViewGroup nullParent = null;
+        //View popupView = layoutInflater.inflate(R.layout.popup2, nullParent);
 
         // final PopupWindow popupWindow;
         popupWindow = new PopupWindow(popupView, ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
-        popupWindow.setFocusable(true);
-        popupWindow.setOutsideTouchable(false);
-        popupWindow.setHeight(ActionBar.LayoutParams.WRAP_CONTENT);
-        popupWindow.setWidth(ActionBar.LayoutParams.WRAP_CONTENT);
 
         String message;
         String message2 = "";
@@ -1812,7 +1951,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         rowTextView8.setTypeface(rowTextView7.getTypeface(), Typeface.BOLD);
         ll.addView(rowTextView8,params);
 
-        message = "\n\n";
+        message = "\n";
 
         final TextView lastRowTextView = new TextView(this);
         lastRowTextView.setText(message);
@@ -1913,13 +2052,14 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             last2RowTextView.setTypeface(last2RowTextView.getTypeface(), Typeface.BOLD);
             ll.addView(last2RowTextView, params);
 
+            /*
             final TextView last3RowTextView = new TextView(this);
             last3RowTextView.setText("\n");
             last3RowTextView.setGravity(Gravity.CENTER);
             last3RowTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
             last3RowTextView.setTypeface(last2RowTextView.getTypeface(), Typeface.BOLD);
             ll.addView(last3RowTextView, params);
-
+            */
 
         }
 
@@ -1927,7 +2067,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         Button btnDismiss = new Button(this);
         LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        params2.setMargins(5, 5, 5, 20);
+        params2.setMargins(5, 20, 5, 50);
         btnDismiss.setLayoutParams(params2);
         btnDismiss.setText(message);
         btnDismiss.setTextSize(TypedValue.COMPLEX_UNIT_SP, FontSize);
@@ -1941,6 +2081,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             public void onClick(View v) {
                 if (ENABLE_LOGS) Log.v("Pete", "ShowPopUp onClick - OK....");
                 popupWindow.dismiss();
+                ReturnStateButtons(visible1,visible2,visible3);
 
                 if(ContinuePlaying && !manualmode){
 
@@ -1962,6 +2103,10 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                     SetInitUI("ShowPopUp_OK");
             }
         });
+
+        popupWindow.setOutsideTouchable(false);
+        popupWindow.setTouchable(true);
+        popupWindow.setBackgroundDrawable(new ColorDrawable());
 
         //Just find some view where we can refer....
         justfind = (ImageButton)findViewById(R.id.settings);
@@ -2002,8 +2147,19 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         preferences = new SecurePreferences(this, "my-preferences", "SometopSecretKey1235", true);
 
+        if (ENABLE_LOGS) Log.v("Pete", "saveLocal - testint: " + testint);
+        if (ENABLE_LOGS) Log.v("Pete", "saveLocal - testint2: " + testint2);
+        if (ENABLE_LOGS) Log.v("Pete", "saveLocal - testint3: " + testint3);
+        if (ENABLE_LOGS) Log.v("Pete", "saveLocal - testint4: " + testint4);
+        if (ENABLE_LOGS) Log.v("Pete", "saveLocal - PlayDBInitialized: " + PlayDBInitialized);
+        if (ENABLE_LOGS) Log.v("Pete", "saveLocal - NbrOfUnlockedAchievements: " + NbrOfUnlockedAchievements);
+
         preferences.put("testint", String.valueOf(testint));
+        preferences.put("testint2", String.valueOf(testint2));
+        preferences.put("testint3", String.valueOf(testint3));
+        preferences.put("testint4", String.valueOf(testint4));
         preferences.put("playdbinitialized", String.valueOf(PlayDBInitialized));
+        preferences.put("NbrAchievements", String.valueOf(NbrOfUnlockedAchievements));
 
     }
 
@@ -2014,10 +2170,19 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         preferences = new SecurePreferences(this, "my-preferences", "SometopSecretKey1235", true);
 
         testint = Integer.parseInt(preferences.getIntString("testint"));
+        testint2 = Integer.parseInt(preferences.getIntString("testint2"));
+        testint3 = Integer.parseInt(preferences.getIntString("testint3"));
+        testint4 = Integer.parseInt(preferences.getIntString("testint4"));
+        NbrOfUnlockedAchievements = Integer.parseInt(preferences.getIntString("NbrAchievements"));
+
         PlayDBInitialized = Integer.parseInt(preferences.getIntString("playdbinitialized"));
 
         if (ENABLE_LOGS) Log.v("Pete", "loadLocal - testint: " + testint);
+        if (ENABLE_LOGS) Log.v("Pete", "loadLocal - testint2: " + testint2);
+        if (ENABLE_LOGS) Log.v("Pete", "loadLocal - testint3: " + testint3);
+        if (ENABLE_LOGS) Log.v("Pete", "loadLocal - testint4: " + testint4);
         if (ENABLE_LOGS) Log.v("Pete", "loadLocal - PlayDBInitialized: " + PlayDBInitialized);
+        if (ENABLE_LOGS) Log.v("Pete", "loadLocal - NbrOfUnlockedAchievements: " + NbrOfUnlockedAchievements);
     }
 
     // Input area and nBack....
@@ -2226,20 +2391,64 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
             if(ENABLE_LOGS) Log.d(TAG, "Query inventory was successful.");
 
+            price_premium = inventory.getSkuDetails("premium").getPrice();
+            all_achievements  = inventory.getSkuDetails("all_achievements").getPrice();
+            enable_all = inventory.getSkuDetails("enable_all").getPrice();
+            remove_ads = inventory.getSkuDetails("remove_ads").getPrice();
+
+            if (ENABLE_LOGS) Log.d(TAG, "price_premium: " + price_premium);
+            if (ENABLE_LOGS) Log.d(TAG, "all_achievements: " + all_achievements);
+            if (ENABLE_LOGS) Log.d(TAG, "remove_ads: " + remove_ads);
+            if (ENABLE_LOGS) Log.d(TAG, "enable_all: " + enable_all);
+
+
             /*
              * Check for items we own. Notice that for each purchase, we check
              * the developer payload to see if it's correct! See
              * verifyDeveloperPayload().
              */
 
-            // Do we have the premium upgrade?
+            // Do we have the premium - or enabled charts?
             Purchase premiumPurchase = inventory.getPurchase(SKU_PREMIUM);
             mIsPremium = (premiumPurchase != null && verifyDeveloperPayload(premiumPurchase));
             if(ENABLE_LOGS) Log.d(TAG, "User is " + (mIsPremium ? "PREMIUM" : "NOT PREMIUM"));
 
             if(mIsPremium){
-                if(ENABLE_LOGS) Log.d(TAG, "Adding 666 to testint...");
-                testint = 666;
+                if(ENABLE_LOGS) Log.d(TAG, "Adding 665 to testint...");
+                testint = 665;
+                saveLocal();
+            }
+
+            // Do we have all achievements purchase?
+            Purchase AllAchievementsPurchase = inventory.getPurchase(SKU_ALL_ACHIEVEMENTS);
+            mEnableAllAchievements = (AllAchievementsPurchase != null && verifyDeveloperPayload(premiumPurchase));
+            if(ENABLE_LOGS) Log.d(TAG, "User has " + (mEnableAllAchievements ? "ALL ACHIEVEMENTS" : "NOT ALL ACHIEVEMENTS"));
+
+            if(mEnableAllAchievements){
+                if(ENABLE_LOGS) Log.d(TAG, "Adding 667 to testint2...");
+                testint2 = 667;
+                saveLocal();
+            }
+
+            // Do we have remove ads purchase?
+            Purchase RemoveAds = inventory.getPurchase(SKU_REMOVE_ADS);
+            mRemoveAds = (RemoveAds != null && verifyDeveloperPayload(premiumPurchase));
+            if(ENABLE_LOGS) Log.d(TAG, "User has " + (mRemoveAds ? "REMOVED ADS" : "NOT REMOVED ADS"));
+
+            if(mRemoveAds){
+                if(ENABLE_LOGS) Log.d(TAG, "Adding 668 to testint3...");
+                testint3 = 668;
+                saveLocal();
+            }
+
+            // Do we have all features purchase?
+            Purchase AllFeatures = inventory.getPurchase(SKU_ENABLE_ALL);
+            mEnableAll = (AllFeatures != null && verifyDeveloperPayload(premiumPurchase));
+            if(ENABLE_LOGS) Log.d(TAG, "User has " + (mEnableAll ? "ALL FEATURES" : "NOT ALL FEATURES"));
+
+            if(mEnableAll){
+                if(ENABLE_LOGS) Log.d(TAG, "Adding 669 to testint4...");
+                testint4 = 669;
                 saveLocal();
             }
 
@@ -2346,6 +2555,63 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         try {
             mIabHelper.launchPurchaseFlow(this, SKU_PREMIUM, RC_REQUEST,
+                    mPurchaseFinishedListener, payload);
+        } catch (IabAsyncInProgressException e) {
+            complain("Error launching purchase flow. Another async operation in progress.");
+            setWaitScreen(false);
+        }
+    }
+
+    // User clicked the "All_Achievements" button.
+    public void onUpgradeAllAchivements() {
+        if(ENABLE_LOGS) Log.d(TAG, "Upgrade button clicked; launching purchase flow for all achievements.");
+        setWaitScreen(true);
+
+        /*  for security, generate your payload here for verification. See the comments on
+         *        verifyDeveloperPayload() for more info. Since this is a SAMPLE, we just use
+         *        an empty string, but on a production app you should carefully generate this. */
+        String payload = "";
+
+        try {
+            mIabHelper.launchPurchaseFlow(this, SKU_ALL_ACHIEVEMENTS, RC_REQUEST,
+                    mPurchaseFinishedListener, payload);
+        } catch (IabAsyncInProgressException e) {
+            complain("Error launching purchase flow. Another async operation in progress.");
+            setWaitScreen(false);
+        }
+    }
+
+    // User clicked the "Remove Ads" button.
+    public void onUpgradeRemoveAds() {
+        if(ENABLE_LOGS) Log.d(TAG, "Upgrade button clicked; launching purchase flow for removeing ads.");
+        setWaitScreen(true);
+
+        /*  for security, generate your payload here for verification. See the comments on
+         *        verifyDeveloperPayload() for more info. Since this is a SAMPLE, we just use
+         *        an empty string, but on a production app you should carefully generate this. */
+        String payload = "";
+
+        try {
+            mIabHelper.launchPurchaseFlow(this, SKU_REMOVE_ADS, RC_REQUEST,
+                    mPurchaseFinishedListener, payload);
+        } catch (IabAsyncInProgressException e) {
+            complain("Error launching purchase flow. Another async operation in progress.");
+            setWaitScreen(false);
+        }
+    }
+
+    // User clicked the "All Features" button.
+    public void onUpgradeEnableAllFeatures() {
+        if(ENABLE_LOGS) Log.d(TAG, "Upgrade button clicked; launching purchase flow for enabling all features.");
+        setWaitScreen(true);
+
+        /*  for security, generate your payload here for verification. See the comments on
+         *        verifyDeveloperPayload() for more info. Since this is a SAMPLE, we just use
+         *        an empty string, but on a production app you should carefully generate this. */
+        String payload = "";
+
+        try {
+            mIabHelper.launchPurchaseFlow(this, SKU_ENABLE_ALL, RC_REQUEST,
                     mPurchaseFinishedListener, payload);
         } catch (IabAsyncInProgressException e) {
             complain("Error launching purchase flow. Another async operation in progress.");
@@ -2489,8 +2755,53 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                     setWaitScreen(false);
 
                     if (mIsPremium) {
-                        if(ENABLE_LOGS) Log.d(TAG, "OnIabPurchaseFinishedListener - Adding 666 to testint...");
-                        testint = 666;
+                        if(ENABLE_LOGS) Log.d(TAG, "OnIabPurchaseFinishedListener - Adding 665 to testint...");
+                        testint = 665;
+                        RestartRequired = true;
+                        saveLocal();
+                    }
+                    break;
+                case SKU_ALL_ACHIEVEMENTS:
+                    // bought the premium upgrade!
+                    if(ENABLE_LOGS) Log.d(TAG, "Purchase is all achievements. Congratulating user.");
+                    alert("Thank you for enabling all achievements!");
+                    mEnableAllAchievements = true;
+                    //updateUi();
+                    setWaitScreen(false);
+
+                    if (mEnableAllAchievements) {
+                        if(ENABLE_LOGS) Log.d(TAG, "OnIabPurchaseFinishedListener - Adding 667 to testint2...");
+                        testint2 = 667;
+                        RestartRequired = true;
+                        saveLocal();
+                    }
+                    break;
+                case SKU_REMOVE_ADS:
+                    // bought the premium upgrade!
+                    if(ENABLE_LOGS) Log.d(TAG, "Purchase is to remove ads. Congratulating user.");
+                    alert("Thank you for removing ads!");
+                    mRemoveAds = true;
+                    //updateUi();
+                    setWaitScreen(false);
+
+                    if (mRemoveAds) {
+                        if(ENABLE_LOGS) Log.d(TAG, "OnIabPurchaseFinishedListener - Adding 668 to testint3...");
+                        testint3 = 668;
+                        RestartRequired = true;
+                        saveLocal();
+                    }
+                    break;
+                case SKU_ENABLE_ALL:
+                    // bought the premium upgrade!
+                    if(ENABLE_LOGS) Log.d(TAG, "Purchase is enabling all features. Congratulating user.");
+                    alert("Thank you for enabling all features!");
+                    mEnableAll = true;
+                    //updateUi();
+                    setWaitScreen(false);
+
+                    if (mEnableAll) {
+                        if(ENABLE_LOGS) Log.d(TAG, "OnIabPurchaseFinishedListener - Adding 669 to testint4...");
+                        testint4 = 669;
                         RestartRequired = true;
                         saveLocal();
                     }
@@ -2673,6 +2984,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
                 //Zero XP points...
                 CollectedXPpoints = 0;
+                NbrOfUnlockedAchievements = 0;
 
                 for (Achievement achievement : loadAchievementsResult.getAchievements()) {
 
@@ -2683,14 +2995,17 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
                     if (unlocked) {
                         if (MainActivity.ENABLE_LOGS)Log.v("Pete", "Value: " + achievement.getXpValue());
                         CollectedXPpoints = CollectedXPpoints + (int)achievement.getXpValue();
+                        NbrOfUnlockedAchievements+=1;
 
                     }
                 }
 
                 if (MainActivity.ENABLE_LOGS)Log.v("Pete", "CollectedXPpoints: " + CollectedXPpoints);
 
-                if(CollectedXPpoints>0)
+                if(CollectedXPpoints>0) {
                     Games.Leaderboards.submitScore(mHelper.getApiClient(), AchievementBoard, CollectedXPpoints);
+                    saveLocal();
+                }
             }
         });
     }
@@ -2730,5 +3045,45 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
     public void ClearScreenOn(){
         getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
+    public void ReturnStateButtons(Boolean state1, Boolean state2, Boolean state3){
+        findViewById(R.id.horizontalview).setVisibility(state1 ? View.VISIBLE : View.GONE);
+        findViewById(R.id.linearview).setVisibility(state2 ? View.VISIBLE : View.GONE);
+        findViewById(R.id.undergrid).setVisibility(state3 ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(ENABLE_LOGS) Log.v("Pete", "onBackPressed");
+        if (popupWindow != null && popupWindow.isShowing()) {
+            if(ENABLE_LOGS) Log.v("Pete", "onBackPressed - popupWindow");
+
+            if(BuyButtonType==1){
+                if (ENABLE_LOGS) Log.v("Pete", "onBackPressed - BuyButtonType 1");
+                ReturnStateButtons(visible1, visible2, visible3);
+                popupWindow.dismiss();
+                return;
+            }
+
+            if(!manualmode){
+                if (ENABLE_LOGS) Log.v("Pete", "onBackPressed - manualmode...");
+                if(ContinuePlaying) {
+                    if (ENABLE_LOGS) Log.v("Pete", "onBackPressed - block it...");
+                }
+                else {
+                        if(ENABLE_LOGS) Log.v("Pete", "onBackPressed - popupWindow.dismiss()");
+                        popupWindow.dismiss();
+                        SetInitUI("onBackPressed");
+                    }
+            }else {
+                //It's always game over....
+                if(ENABLE_LOGS) Log.v("Pete", "onBackPressed - ReturnStateButtons popupWindow.dismiss()");
+                popupWindow.dismiss();
+                SetInitUI("onBackPressed");
+            }
+        } else {
+            super.onBackPressed();
+        }
     }
 }

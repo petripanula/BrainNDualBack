@@ -35,7 +35,9 @@ public class TimeHistoryActivity extends AppCompatActivity {
 
     SecurePreferences preferences;
     int testint;
+    int testint4;
     int DbSize;
+    Boolean Subscribed = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,8 +79,12 @@ public class TimeHistoryActivity extends AppCompatActivity {
             DoNotShowCraph = false;
         }
 
-        if(testint!=666 && DbSize>=10){
-            HTMLsourceString = "<font color=#00FF00><b> Buy Premium Subscription to show more progress! </b></font>";
+        if(testint==665 || testint4==669){
+            Subscribed = true;
+        }
+
+        if(!Subscribed && DbSize>=10){
+            HTMLsourceString = "<font color=#00FF00><b> Buy Progress Charts to show more progress! </b></font>";
             DoNotShowCraph = true;
         }
 
