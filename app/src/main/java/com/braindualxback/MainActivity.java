@@ -348,7 +348,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
 
         //All Features enables or Ads Removed!!
         if(testint4==669 || testint3==668){
-            if(ENABLE_LOGS) Log.d(TAG, "All Features or Disbald Ads!!!");
+            if(ENABLE_LOGS) Log.d(TAG, "All Features or Disabled Ads!!!");
             mSubscribedToInfiniteLaugh=true;
             mSubscribedToInfiniteGas = true;
 
@@ -470,6 +470,11 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
         sizeofcubeside = (int)sqrt(NbrOfPictures);
         HeightOfGridArea = windowHeight*6/7;
 
+        if (ENABLE2_LOGS) Log.d("Pete", "windowHeight: " + windowHeight);
+        if (ENABLE2_LOGS) Log.d("Pete", "windowWidth: " + windowWidth);
+        if (ENABLE2_LOGS) Log.d("Pete", "HeightOfGridArea: " + HeightOfGridArea);
+
+
         gridview.setNumColumns(sizeofcubeside);
 
         int NbrOfVerticalPictures = NbrOfPictures/sizeofcubeside;
@@ -488,7 +493,7 @@ public class MainActivity extends BaseGameActivity implements NumberPicker.OnVal
             picturewidth = HeightOfGridArea/NbrOfVerticalPictures - TotalPadding;
             if (ENABLE2_LOGS) Log.d("Pete", "new picturewidth: " + picturewidth);
         }else{
-            picturewidth = picturewidth - 50;
+            picturewidth = picturewidth - (windowWidth/30);
         }
 
         NewArray = new int[NbrOfPictures];
